@@ -1,8 +1,10 @@
 ﻿using Eto.Forms;
 using Eto.Drawing;
 using System;
-using CoinManager.GUI;
 using System.Collections.Generic;
+
+using CoinManager.GUI;
+using CoinManager.API;
 
 public class MyForm : Form
 {
@@ -100,7 +102,9 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        new Eto.Forms.Application().Run(new CoinsForm("Bruh", new Size(1000, 600)));
+        //new Eto.Forms.Application().Run(new CoinsForm("Bruh", new Size(1000, 600)));
+        var client = new CoingeckoClient();
+        client.UpdateList().Wait();
     }
 }
 
