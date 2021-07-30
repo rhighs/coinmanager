@@ -3,18 +3,6 @@ using System.Collections.Generic;
 
 namespace CoinManager.Shared
 {
-    public static class CGPaths
-    {
-        public static string Base =                "https://api.coingecko.com/api/v3";
-        public static string Ping =                "/ping";
-        public static string SimplePrice =         "/simple/price";
-        public static string SimpleWithAddress =   "/simple/token/price/{id}";
-        public static string CoinsList =           "/coins/list";
-        public static string CoinsMarket =         "/coins/market";
-        public static string CoinsDataId =         "/coins/{id}";
-        public static string Trending =            "/search/trending";
-    }
-
     public class SimpleCoin
     {
         private string _symbol;
@@ -51,5 +39,28 @@ namespace CoinManager.Shared
             null => throw new NullReferenceException(nameof(input)),
             _ => input[0].ToString().ToUpper() + input.Substring(1) //default
         };
+    }
+}
+
+namespace CoinManager.ApiData
+{
+    public static class CGPaths
+    {
+        public static string Base =                "https://api.coingecko.com/api/v3";
+        public static string Ping =                "/ping";
+        public static string SimplePrice =         "/simple/price";
+        public static string SimpleWithAddress =   "/simple/token/price/{id}";
+        public static string CoinsList =           "/coins/list";
+        public static string CoinsMarket =         "/coins/market";
+        public static string CoinsDataId =         "/coins/{id}";
+        public static string Trending =            "/search/trending";
+    }
+}
+
+namespace CoinManager.DbData
+{
+    public static class DbConnection
+    {
+        public static string ConnectionString = "";
     }
 }
