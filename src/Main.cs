@@ -104,7 +104,7 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        //new Eto.Forms.Application().Run(new CoinsForm("Bruh", new Size(1000, 600)));
+        new Eto.Forms.Application().Run(new CoinsForm("Bruh"));
         string vs = "usd";
         var client = new CoingeckoClient();
         List<SimpleCoin> list = null;
