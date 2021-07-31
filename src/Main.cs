@@ -104,7 +104,8 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        new Eto.Forms.Application().Run(new CoinsForm("Bruh"));
+        const string TITLE = "CoinManager Desktop";
+        new Eto.Forms.Application().Run(new CoinsForm(TITLE));
         string vs = "usd";
         var client = new CoingeckoClient();
         List<SimpleCoin> list = null;
@@ -117,8 +118,6 @@ public class Startup
                             Console.WriteLine(c.name);
                         });
                 }).Wait();
-
-
     }
 }
 
