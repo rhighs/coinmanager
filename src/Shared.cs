@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace CoinManager.Shared
 {
@@ -26,10 +27,48 @@ namespace CoinManager.Shared
         }
     }
 
-    public class CGList
+    public class Localization
     {
-        public List<CryptoCoin> CoinsList { get; set; }
+        public string en { get; set; }
+        public string de { get; set; }
+        public string es { get; set; }
+        public string fr { get; set; }
+        public string it { get; set; }
+        public string pl { get; set; }
+        public string ro { get; set; }
+        public string hu { get; set; }
+        public string nl { get; set; }
+        public string pt { get; set; }
+        public string sv { get; set; }
+        public string vi { get; set; }
+        public string tr { get; set; }
+        public string ru { get; set; }
+        public string ja { get; set; }
+        public string zh { get; set; }
+
+        [JsonPropertyName("zh-tw")]
+        public string ZhTw { get; set; }
+        public string ko { get; set; }
+        public string ar { get; set; }
+        public string th { get; set; }
+        public string id { get; set; }
     }
+
+    public class Image
+    {
+        public string thumb { get; set; }
+        public string small { get; set; }
+    }
+
+    public class CoinInfo
+    {
+        public string id { get; set; }
+        public string symbol { get; set; }
+        public string name { get; set; }
+        public Localization localization { get; set; }
+        public Image image { get; set; }
+    }
+
     
     public static class StringExtensions
     {
@@ -47,13 +86,13 @@ namespace CoinManager.ApiData
     public static class CGPaths
     {
         public static string Base =                "https://api.coingecko.com/api/v3";
-        public static string Ping =                "/ping";
-        public static string SimplePrice =         "/simple/price";
-        public static string SimpleWithAddress =   "/simple/token/price/{id}";
-        public static string CoinsList =           "/coins/list";
-        public static string CoinsMarket =         "/coins/market";
-        public static string CoinsDataId =         "/coins/{id}";
-        public static string Trending =            "/search/trending";
+        public static string Ping =                Base + "/ping";
+        public static string SimplePrice =         Base + "/simple/price";
+        public static string SimpleWithAddress =   Base + "/simple/token/price/{id}";
+        public static string CoinsList =           Base + "/coins/list";
+        public static string CoinsMarket =         Base + "/coins/market";
+        public static string CoinsDataId =         Base + "/coins/{id}";
+        public static string Trending =            Base + "/search/trending";
     }
 }
 
