@@ -21,6 +21,18 @@ namespace CoinManager.GUI
             tabs.AddPage("coins", coinsTable);
 
             var loginPage = new LoginPanel();
+            loginPage.CreateButton(new Command((sender, e) => {
+                        var user = loginPage.Username.Text;
+                        var password = loginPage.Password.Text;
+                        var error = loginPage.ErroreMessage;
+                        if(user == "sku" && password == "monti")
+                        {
+                            Content = tabs;
+                            error.Text = "";
+                        }
+                        error.Text = "Hai sbagliato username o password, riprova.";
+                        Console.WriteLine(loginPage.Password.Text);
+                        }));
             Content = loginPage;
         }
 
@@ -33,46 +45,30 @@ namespace CoinManager.GUI
 
     public class LoginPanel : Panel
     {
-        private PasswordBox pwd;
-        private Command onSubmit;
-        private Panel littleForm; 
-        private TextBox username;
+        public PasswordBox Password { get; set; }
+        public TextBox Username { get; set; }
+        public Command OnSubmit { get; set; }
+        public Label ErroreMessage { get; set; } =
+            new Label() { Text = "" };
+
         private Button loginButton;
+        private StackLayout layout;
+
         static private Size inputSize = new Size(400, 40);
         static private string imagePath = "./res/logo.png";
+        static private Label usernameLabel = new Label(){ Text = "Nome utente" };
+        static private Label passwordLabel = new Label(){ Text = "Password" };
 
         public LoginPanel()
         {
-            username = new TextBox()
+            Username = new TextBox()
             {
                 Size = inputSize
             };
-            pwd = new PasswordBox()
+            Password = new PasswordBox()
             {
                 Size = inputSize
             };
-
-            onSubmit = new Command((sender, e) => {
-                    Console.WriteLine("Login action triggered");
-                    });
-
-            loginButton = new Button()
-            {
-                Text = "Login",
-                Command = new Command((sender, e) => {
-                        Console.WriteLine(username.Text);
-                        Console.WriteLine(pwd.Text);
-                    }),
-                Size = inputSize
-            };
-
-            var layout = new StackLayout()
-            {
-                Padding = new Padding(200, 100, 200, 100),
-                Spacing = 10,
-                AlignLabels = true
-            };
-
             var bmp = new Bitmap(imagePath);
             var logo = new ImageView()
             {
@@ -80,16 +76,45 @@ namespace CoinManager.GUI
                 Size = new Size(400, 200)
             };
 
-            layout.Items.Add(logo);
-            layout.Items.Add(new Label(){ Text = "Nome utente" });
-            layout.Items.Add(username);
-            layout.Items.Add(new Label(){ Text = "Password" });
-            layout.Items.Add(pwd);
+            Action fillLayout = () => 
+            {
+                layout.Items.Add(logo);
+                layout.Items.Add(usernameLabel);
+                layout.Items.Add(Username);
+                layout.Items.Add(passwordLabel);
+                layout.Items.Add(Password);
+                layout.Items.Add(ErroreMessage);
+            };
+
+            layout = new StackLayout()
+            {
+                Padding = new Padding(200, 50, 200, 100),
+                Spacing = 10,
+                AlignLabels = true
+            };
+
+            fillLayout();
+        }
+
+        public void CreateButton(Command command)
+        {
+            OnSubmit = command;
+            var last = layout.Items[layout.Items.Count - 1];
+            if(last.Control is Button)
+            {
+                layout.Items.Remove(last);
+            }
+            loginButton = new Button()
+            {
+                Text = "Login",
+                     Command = OnSubmit,
+                     Size = inputSize
+            };
             layout.Items.Add(loginButton);
             Content = layout;
         }
     }
-    
+
     public class TabDrawer : TabControl
     {
         public TabDrawer()
@@ -102,7 +127,7 @@ namespace CoinManager.GUI
             var page = new TabPage()
             {
                 Text = pageTitle, 
-                Content = item
+                     Content = item
             };
             Pages.Add(page);
         }
@@ -114,7 +139,7 @@ namespace CoinManager.GUI
                 var page = new TabPage()
                 {
                     Text = item.Key,
-                    Content = item.Value
+                         Content = item.Value
                 };
                 Pages.Add(page);
             }
