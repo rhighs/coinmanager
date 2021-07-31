@@ -2,9 +2,11 @@
 using Eto.Drawing;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using CoinManager.GUI;
 using CoinManager.API;
+using CoinManager.Shared;
 
 public class MyForm : Form
 {
@@ -18,7 +20,7 @@ public class MyForm : Form
         Menu.QuitItem = new Command((sender, e) => Application.Instance.Quit())
         {
             MenuText = "Quit",
-            Shortcut = Application.Instance.CommonModifier | Keys.Q
+                     Shortcut = Application.Instance.CommonModifier | Keys.Q
         };
         var aboutItem = new ButtonMenuItem { Text = "About..." };
         aboutItem.Click += (sender, e) => 
@@ -26,7 +28,7 @@ public class MyForm : Form
             var dlg = new Dialog
             {
                 Content = new Label { Text = "About my app..." },
-                ClientSize = new Size(200, 200)
+                        ClientSize = new Size(200, 200)
             };
             dlg.ShowModal(this);
         };
@@ -103,8 +105,20 @@ public class Startup
     public static void Main(string[] args)
     {
         //new Eto.Forms.Application().Run(new CoinsForm("Bruh", new Size(1000, 600)));
+        string vs = "usd";
         var client = new CoingeckoClient();
-        client.UpdateList().Wait();
+        List<SimpleCoin> list = null;
+        Task.Run(async () => 
+                {
+                list = await client.GetCoinsList();                
+                var mktList = await client.GetMarketData(vs, "bitcoin", "ethereum");
+                mktList.ForEach((c) => 
+                        {
+                            Console.WriteLine(c.name);
+                        });
+                }).Wait();
+
+
     }
 }
 
