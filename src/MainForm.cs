@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Resources;
 
 using Eto.Forms;
 using Eto.Drawing;
@@ -75,30 +74,29 @@ namespace CoinManager.GUI
                 Image = bmp,
                 Size = new Size(400, 200)
             };
-
-            Action fillLayout = () => 
+            Func<StackLayout> createLayout = () => 
             {
-                layout.Items.Add(logo);
-                layout.Items.Add(usernameLabel);
-                layout.Items.Add(Username);
-                layout.Items.Add(passwordLabel);
-                layout.Items.Add(Password);
-                layout.Items.Add(ErroreMessage);
+                var l = new StackLayout()
+                {
+                    Padding = new Padding(200, 50, 200, 100),
+                    Spacing = 10,
+                    AlignLabels = true
+                };
+                l.Items.Add(logo);
+                l.Items.Add(usernameLabel);
+                l.Items.Add(Username);
+                l.Items.Add(passwordLabel);
+                l.Items.Add(Password);
+                l.Items.Add(ErroreMessage);
+                return l;
             };
-
-            layout = new StackLayout()
-            {
-                Padding = new Padding(200, 50, 200, 100),
-                Spacing = 10,
-                AlignLabels = true
-            };
-
-            fillLayout();
+            Content = createLayout();
         }
 
         public void CreateButton(Command command)
         {
             OnSubmit = command;
+            var layout = (Content as StackLayout);
             var last = layout.Items[layout.Items.Count - 1];
             if(last.Control is Button)
             {
@@ -111,7 +109,6 @@ namespace CoinManager.GUI
                      Size = inputSize
             };
             layout.Items.Add(loginButton);
-            Content = layout;
         }
     }
 
