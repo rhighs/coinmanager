@@ -16,8 +16,17 @@ namespace CoinManager.GUI
                     Tuple.Create("btc".ToUpper(), "bitcoin", 1.2f),
                     Tuple.Create("btc".ToUpper(), "bitcoin", 1.2f),
                     });
+            var user = new User()
+            {
+                Username = "rob",
+                UserID = 124,
+                WalletId = "s1kj23h1kj42h1kj"
+            };
+
+            var wallet = new Wallet(user);
             var tabs = new TabDrawer();
             tabs.AddPage("coins", coinsTable);
+            tabs.AddPage("wallet", wallet);
 
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
@@ -136,7 +145,7 @@ namespace CoinManager.GUI
                 var page = new TabPage()
                 {
                     Text = item.Key,
-                         Content = item.Value
+                    Content = item.Value
                 };
                 Pages.Add(page);
             }
