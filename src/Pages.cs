@@ -5,61 +5,10 @@ using Eto.Forms;
 using Eto.Drawing;
 
 using CoinManager.DbData;
+using CoinManager.Shared;
 
 namespace CoinManager.GUI
 {
-    public class CoinsTable : TableLayout 
-    {
-        private int padding = 20;
-        private string priceFormatting = "{0:N2}";
-        private string mainCoin = "$";
-        private int spacing = 5;
-
-        private Command postCommand;
-
-        public CoinsTable() : base()
-        {
-            Rows.Add(
-                new TableRow(
-                        new TableCell(new Label { Text = "Coin Symbol" }, true),
-                        new TableCell(new Label { Text = "Coin Name" }, true),
-                        new Label { Text = "Current price" }
-                        )
-            );
-            Spacing = new Size(spacing, spacing);
-            Padding = new Padding(padding);
-
-            postCommand = new Command(async (sender, e) =>
-                {
-                    Console.WriteLine("clicked");
-                }
-            );
-        }
-
-        public void AddRows(List<Tuple<string, string, float>> coinInfo)
-        {
-            coinInfo.ForEach(c =>
-                {
-                    var button = new Button
-                    {
-                        Text = c.Item1.ToUpper(),
-                        Command = postCommand
-                    };
-                    var row = new TableRow(
-                        new TableCell(button, true),
-                        new TableCell(new Label { Text = c.Item2 }, true),
-                        new TableCell(new Label { Text = (string.Format(priceFormatting, c.Item3 ) + mainCoin)}, true)
-                    );
-                    if(c == coinInfo[coinInfo.Count - 1])
-                    {
-                        row.ScaleHeight = true;
-                    }
-                    Rows.Add(row);
-                }
-           );
-        }
-    }
-
     public class Wallet : Panel
     {
         public User User { get; set; }
@@ -80,6 +29,63 @@ namespace CoinManager.GUI
                 return l;
             };
             Content = createLayout();
+        }
+    }
+
+    public class CoinsList : Scrollable
+    {
+        public string Name { get; private set; } = "Coins list";
+
+        private TableLayout table;
+        private const int BUTTON_WIDTH = 50;
+
+        public CoinsList()
+        {
+            table = new TableLayout();
+            table.Spacing = new Size(10, 10);
+            table.Padding = new Padding(10, 10, 10, 10);
+
+            Action tempFill = () => {
+                var tempList = new List<SimpleCoin>();
+                for(int i = 0; i < 100; i++)
+                {
+                    var simpleCoin = new SimpleCoin
+                    {
+                        name = "butcoin",
+                        symbol = "btc",
+                        id = "bitcoin"
+                    };
+                    tempList.Add(simpleCoin);
+                }
+                UpdateList(tempList);
+            };
+
+            tempFill();
+            Content = table;
+        }
+
+        public void UpdateList(List<SimpleCoin> coins)
+        {
+            table.RemoveAll();
+            coins.ForEach(c =>
+            {
+                var button = new Button
+                {
+                    Text = "...",
+                    Command = new Command((sender, e) =>
+                            {
+                                Console.WriteLine("Pop up window to open");
+                            }),
+                    Width = BUTTON_WIDTH
+                };
+
+                var row = new TableRow(
+                        new TableCell(new Label() { Text = c.symbol }, true),
+                        new TableCell(new Label() { Text = c.name }, true),
+                        TableLayout.AutoSized(button) 
+                        );
+                table.Rows.Add(row);
+            });
         }
     }
 }
