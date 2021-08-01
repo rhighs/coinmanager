@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 
+using CoinManager.DbData;
+
 namespace CoinManager.GUI
 {
     public class CoinsForm : Form
@@ -11,23 +13,20 @@ namespace CoinManager.GUI
         public CoinsForm(string title) : base()
         {
             Title = title;
-            var coinsTable = new CoinsTable();
-            coinsTable.AddRows(new List<Tuple<string, string, float>> {
-                    Tuple.Create("btc".ToUpper(), "bitcoin", 1.2f),
-                    Tuple.Create("btc".ToUpper(), "bitcoin", 1.2f),
-                    });
-
-            var user = new User()
+            var user = new User
             {
                 Username = "rob",
-                UserID = 124,
-                WalletId = "s1kj23h1kj42h1kj"
+                UserId = 1,
+                WalletId = 1
             };
 
             var wallet = new Wallet(user);
             var tabs = new TabDrawer();
-            tabs.AddPage("coins", coinsTable);
-            tabs.AddPage("wallet", wallet);
+            var listTest = new TabDrawer();
+            var coinsList = new CoinsList();
+
+            tabs.AddPage(coinsList.Name, coinsList);
+            tabs.AddPage("Wallet", wallet);
 
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
