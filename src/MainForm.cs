@@ -16,6 +16,7 @@ namespace CoinManager.GUI
                     Tuple.Create("btc".ToUpper(), "bitcoin", 1.2f),
                     Tuple.Create("btc".ToUpper(), "bitcoin", 1.2f),
                     });
+
             var user = new User()
             {
                 Username = "rob",

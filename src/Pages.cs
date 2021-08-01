@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 
 using Eto.Forms;
 using Eto.Drawing;
 
-using CoinManager.DB;
+using CoinManager.DbData;
 
 namespace CoinManager.GUI
 {
@@ -82,12 +81,5 @@ namespace CoinManager.GUI
             };
             Content = createLayout();
         }
-    }
-
-    public class User
-    {
-        public string Username { get; set; }
-        public int UserID { get; set; }
-        public string WalletId { get; set; }
     }
 }
