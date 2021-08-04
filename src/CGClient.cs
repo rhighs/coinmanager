@@ -47,8 +47,14 @@ namespace CoinManager.API
             }
             var data = (await http.GetAsync(completeUrl)).Content;
             var dataString = await data.ReadAsStringAsync();
-            Console.WriteLine(dataString);
-            return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
+            try {
+                return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
+            }
+            catch
+            {
+                Console.WriteLine(dataString);
+                return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
+            }
         }
     }
 }
