@@ -76,8 +76,8 @@ namespace CoinManager.Shared
         public string name { get; set; }
         public string image { get; set; }
         public double? current_price { get; set; }
-        public long? market_cap { get; set; }
-        public int? market_cap_rank { get; set; }
+        public double? market_cap { get; set; }
+        public double? market_cap_rank { get; set; }
         public double? fully_diluted_valuation { get; set; }
         public double? total_volume { get; set; }
         public double? high_24h { get; set; }
