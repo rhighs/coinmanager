@@ -25,10 +25,8 @@ public class Startup
             string json = r.ReadToEnd();
             items = JsonSerializer.Deserialize<List<CoinMarket>>(json);
             var db = new CMDbContext("localhost", "coinmanager", "rob", "rob"); 
-            var bitcoin = db.crypto.Find("bitcoin");
-            var sku = db.userstandard.Find(0);
-            Console.WriteLine(bitcoin.id + " " + bitcoin.currentprice);
-            Console.WriteLine(sku);
+            var bitcoin = db.Crypto.Find("bitcoin");
+            Console.WriteLine(bitcoin.Id + " " + bitcoin.CurrentPrice);
        }
         /*
         Task.Run(async () =>

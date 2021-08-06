@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CoinManager.EF
 {
@@ -15,15 +16,15 @@ namespace CoinManager.EF
      */
     public class CMDbContext : DbContext
     {
-        public DbSet<Crypto> crypto { get; set; }
-        public DbSet<UserStandard> userstandard { get; set; }
-        public DbSet<UserMiner> userminer { get; set; }
-        public DbSet<MinerSessions> minersessions { get; set; }
-        public DbSet<Wallet> wallet { get; set; }
-        public DbSet<Transaction> transaction { get; set; }
-        public DbSet<RunningTransaction> runningtransaction { get; set; }
-        public DbSet<Buy> buy { get; set; }
-        public DbSet<Loan> loan { get; set; }
+        public DbSet<Crypto> Crypto { get; set; }
+        public DbSet<UserStandard> UserStandard { get; set; }
+        public DbSet<UserMiner> UserMiner { get; set; }
+        public DbSet<MinerSessions> MinerSessions { get; set; }
+        public DbSet<Wallet> Wallet { get; set; }
+        public DbSet<Transaction> Transaction { get; set; }
+        public DbSet<RunningTransaction> RunningTransaction { get; set; }
+        public DbSet<Buy> Buy{ get; set; }
+        public DbSet<Loan> Loan { get; set; }
         private string connectionString;
 
         public CMDbContext(string host, string dbName, string username, string password) 
@@ -35,86 +36,140 @@ namespace CoinManager.EF
             => optionsBuilder.UseNpgsql(connectionString);
     }
 
+    [Table("userstandard")]
     public class UserStandard
     {
-        public int id              { get; set; }
-        public string username     { get; set; }
-        public string password     { get; set; }
+        [Column("id")]
+        public int Id              { get; set; }
+        [Column("username")]
+        public string Username     { get; set; }
+        [Column("password")]
+        public string Password     { get; set; }
     }
  
+    [Table("userminer")]
     public class UserMiner
     {
-        public int id              { get; set; }
-        public int miningpower     { get; set; }
+        [Column("id")]
+        public int Id              { get; set; }
+        [Column("miningpower")]
+        public int Miningpower     { get; set; }
     }
 
+    [Table("minersessions")]
     public class MinerSessions
     {
-        public int id              { get; set; }
-        public int minerid         { get; set; }
-        public int transactionid   { get; set; }
+        [Column("id")]
+        public int Id              { get; set; }
+        [Column("minerid")]
+        public int MinerId         { get; set; }
+        [Column("transactionid")]
+        public int TransactionId   { get; set; }
     }
 
+    [Table("wallet")]
     public class Wallet
     {
         [Key]
-        public int userid          { get; set; }
-        public string cryptoid     { get; set; }
-        public double quantity     { get; set; }
+        [Column("userid")]
+        public int UserId          { get; set; }
+        [Column("cryptoid")]
+        public string CryptoId     { get; set; }
+        [Column("quantity")]
+        public double Quantity     { get; set; }
     }
 
+    [Table("crypto")]
     public class Crypto
     {
-        public string id                { get; set; }
-        public string name              { get; set; }
-        public string symbol            { get; set; }
-        public double currentprice      { get; set; }
-        public string imageurl          { get; set; }
-        public double marketcap         { get; set; }
-        public double marketcaprank     { get; set; }
-        public int circulatingsupply    { get; set; }
-        public double totalvolume       { get; set; }
+        [Column("id")]
+        public string Id                { get; set; }
+        [Column("name")]
+        public string Name              { get; set; }
+        [Column("symbol")]
+        public string Symbol            { get; set; }
+        [Column("currentprice")]
+        public double CurrentPrice      { get; set; }
+        [Column("imageurl")]
+        public string ImageUrl          { get; set; }
+        [Column("marketcap")]
+        public double Marketcap         { get; set; }
+        [Column("marketcaprank")]
+        public double MarketcapRrank     { get; set; }
+        [Column("circulatingsupply")]
+        public int CirculatingSupply    { get; set; }
+        [Column("totalvolume")]
+        public double TotalVolume       { get; set; }
     }
 
+    [Table("transaction")]
     public class Transaction
     {
-        public int id                   { get; set; }
-        public int sourceid             { get; set; }
-        public int destinationid        { get; set; }
-        public string cryptoid          { get; set; }
-        public DateTime startdate       { get; set; }
-        public DateTime finishdate      { get; set; }
-        public double cryptoquantity    { get; set; }
-        public int state                { get; set; }
+        [Column("id")]
+        public int Id                   { get; set; }
+        [Column("sourceid")]
+        public int SourceId             { get; set; }
+        [Column("dstinationid")]
+        public int DestinationId        { get; set; }
+        [Column("cryptoid")]
+        public string CryptoId          { get; set; }
+        [Column("startdate")]
+        public DateTime StartDate       { get; set; }
+        [Column("finishdate")]
+        public DateTime FinishDate      { get; set; }
+        [Column("cryptoquantity")]
+        public double CryptoQuantity    { get; set; }
+        [Column("state")]
+        public int State                { get; set; }
     }
 
+    [Table("runningtransaction")]
     public class RunningTransaction
     {
         [Key]
-        public int transactionid        { get; set; }
-        public DateTime startdate       { get; set; }
-        public DateTime finishdate      { get; set; }
-        public int idminer              { get; set; }
+        [Column("transactionid")]
+        public int TransactionId        { get; set; }
+        [Column("startdate")]
+        public DateTime StartDate       { get; set; }
+        [Column("finishdate")]
+        public DateTime FinishDate      { get; set; }
+        [Column("idminer")]
+        public int MinerId              { get; set; }
     }
 
+    [Table("buy")]
     public class Buy
     {
-        public int id                   { get; set; }
-        public int userid               { get; set; }
-        public string cryptoid          { get; set; }
-        public string basecryptoid      { get; set; }
-        public double basequantity      { get; set; }
-        public double buyquantity       { get; set; }
+        [Column("id")]
+        public int Id                   { get; set; }
+        [Column("userid")]
+        public int UserId               { get; set; }
+        [Column("cryptoid")]
+        public string CryptoId          { get; set; }
+        [Column("basecryptoid")]
+        public string BaseCryptoId      { get; set; }
+        [Column("basequantity")]
+        public double BaseQuantity      { get; set; }
+        [Column("buyquantity")]
+        public double BuyQuantity       { get; set; }
     }
 
+    [Table("loan")]
     public class Loan
     {
-        public int id                   { get; set; }
-        public int userid               { get; set; }
-        public string cryptoid          { get; set; }
-        public string advancecryptoid   { get; set; }
-        public double loanquantity      { get; set; }
-        public double advance           { get; set; }
-        public DateTime expiredate      { get; set; }
+        [Column("id")]
+        public int Id                   { get; set; }
+        [Column("userid")]
+        public int UserId               { get; set; }
+        [Column("crytpo")]
+        public string CryptoId          { get; set; }
+        [Column("advancecryptoid")]
+        public string AdvanceCryptoId   { get; set; }
+        [Column("loanquantity")]
+        public double LoanQuantity      { get; set; }
+        [Column("advance")]
+        public double Advance           { get; set; }
+        [Column("expiredate")]
+        public DateTime ExpireDate      { get; set; }
     }
 }
