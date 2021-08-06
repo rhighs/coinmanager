@@ -18,22 +18,21 @@ public class Startup
         new Eto.Forms.Application().Run(new CoinsForm(TITLE));
         var client = new CoingeckoClient();
         var connString = "Host=localhost;Username=rob;Password=rob;Database=coinmanager";
-
+        var dbc = new DbHelper(connString);
         List<CoinMarket> items;
         using (StreamReader r = new StreamReader("./market.json"))
         {
             string json = r.ReadToEnd();
             items = JsonSerializer.Deserialize<List<CoinMarket>>(json);
-            var db = new CMDbContext("localhost", "coinmanager", "rob", "rob"); 
-            var bitcoin = db.Crypto.Find("bitcoin");
-            Console.WriteLine(bitcoin.Id + " " + bitcoin.CurrentPrice);
-       }
-        /*
+        }
         Task.Run(async () =>
                 {
-                    await db.InsertCryptos(items);
+                    await dbc.InsertCryptos(items);
                 }).Wait();
-                */
+            var db = new CMDbContext("localhost", "coinmanager", "rob", "rob"); 
+            var bitcoin = db.Crypto.Find("bitcoin");
+            Console.WriteLine(bitcoin);
+            Console.WriteLine(bitcoin.Id + " " + bitcoin.CurrentPrice);
     }
 }
 
