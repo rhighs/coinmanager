@@ -1,4 +1,7 @@
-CREATE DOMAIN CRIPTO_ID AS VARCHAR(20) NOT NULL;
+CREATE DOMAIN CRYPTO_ID AS VARCHAR(300) NOT NULL;
+CREATE DOMAIN CRYPTO_NAME AS VARCHAR(300) NOT NULL;
+CREATE DOMAIN CRYPTO_SYMBOL AS VARCHAR(300) NOT NULL;
+CREATE DOMAIN CRYPTO_IMAGE AS VARCHAR(1000) NOT NULL;
 
 CREATE TABLE UserStandard (
     Id Integer NOT NULL PRIMARY KEY,
@@ -12,35 +15,35 @@ CREATE TABLE UserMiner (
     FOREIGN KEY (Id) REFERENCES UserStandard(Id)
 );
 
-CREATE TABLE Cripto (
-    Id CRIPTO_ID PRIMARY KEY,
-    Name VARCHAR(20) NOT NULL,
-    Symbol VARCHAR(4) NOT NULL,
+CREATE TABLE CRYPTO (
+    Id CRYPTO_ID PRIMARY KEY,
+    Name CRYPTO_NAME,
+    Symbol CRYPTO_SYMBOL,
     CurrentPrice FLOAT NOT NULL,
-    ImageUrl VARCHAR(200), 
+    ImageUrl CRYPTO_IMAGE, 
     MarketCap FLOAT NOT NULL,
     MarketCapRank FLOAT NOT NULL,
-    CirculatingSupply INTEGER,
+    CirculatingSupply BIGINT,
     TotalVolume FLOAT
 );
 
 CREATE TABLE Wallet (
     UserId Integer NOT NULL,
-    CriptoId CRIPTO_ID NOT NULL,
+    CryptoId CRYPTO_ID NOT NULL,
     Quantity FLOAT NOT NULL,
-    PRIMARY KEY (UserId, CriptoId),
+    PRIMARY KEY (UserId, CRYPTOId),
     FOREIGN KEY (UserId) REFERENCES UserStandard(Id),
-    FOREIGN KEY (CriptoId) REFERENCES Cripto(Id)
+    FOREIGN KEY (CRYPTOId) REFERENCES Crypto(Id)
 );
 
 CREATE TABLE Transaction (
     Id INTEGER NOT NULL PRIMARY KEY,
     SourceId Integer NOT NULL,
     DestitationId Integer NOT NULL,
-    CriptoId CRIPTO_ID,
+    CRYPTOId CRYPTO_ID,
     StartDate TIMESTAMP WITH TIME ZONE,
     FinishDate TIMESTAMP WITH TIME ZONE,
-    CriptoQuantity FLOAT NOT NULL,
+    CRYPTOQuantity FLOAT NOT NULL,
     State INTEGER NOT NULL,
     CONSTRAINT ValidState CHECK ( State BETWEEN 1 AND 3 )
 );
@@ -57,26 +60,26 @@ CREATE TABLE RunningTransaction (
 CREATE TABLE Buy (
     Id INTEGER NOT NULL PRIMARY KEY,
     UserId INTEGER NOT NULL,
-    CriptoId CRIPTO_ID,
-    BaseCriptoId CRIPTO_ID,
+    CryptoId CRYPTO_ID,
+    BaseCRYPTOId CRYPTO_ID,
     BaseQuantity FLOAT NOT NULL,
     BuyQuantity FLOAT NOT NULL,
     FOREIGN KEY (UserId) REFERENCES UserStandard(Id),
-    FOREIGN KEY (CriptoId) REFERENCES Cripto(Id),
-    FOREIGN KEY (BaseCriptoId) REFERENCES Cripto(Id)
+    FOREIGN KEY (CRYPTOId) REFERENCES Crypto(Id),
+    FOREIGN KEY (BaseCRYPTOId) REFERENCES Crypto(Id)
 );
 
 CREATE TABLE Loan (
     Id INTEGER NOT NULL PRIMARY KEY,
     UserId INTEGER NOT NULL,
-    CriptoId CRIPTO_ID,
-    AdvanceCriptoId CRIPTO_ID,
+    CryptoId CRYPTO_ID,
+    AdvanceCRYPTOId CRYPTO_ID,
     LoanQuantity FLOAT NOT NULL,
     Advance FLOAT,
     ExpireDate TIMESTAMP WITH TIME ZONE,
     FOREIGN KEY (UserId) REFERENCES UserStandard(Id),
-    FOREIGN KEY (CriptoId) REFERENCES Cripto(Id),
-    FOREIGN KEY (AdvanceCriptoId) REFERENCES Cripto(Id)
+    FOREIGN KEY (CRYPTOId) REFERENCES Crypto(Id),
+    FOREIGN KEY (AdvanceCRYPTOId) REFERENCES Crypto(Id)
 );
 
 CREATE TABLE MinerSessions (
