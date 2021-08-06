@@ -1,6 +1,6 @@
 using System;
 using Npgsql;
-using Npgsql.PostgresTypes;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -35,48 +35,26 @@ namespace CoinManager.DB
         {
             await using var conn = new NpgsqlConnection(connectionString);
             await conn.OpenAsync();
+            string head = "INSERT INTO crypto VALUES";
+            string values = "(:id, :name, :sym, :price, :imgurl, :mkt, :mktrank, :circ, :vol);";
 
+            Action<string, object, NpgsqlTypes.NpgsqlDbType, NpgsqlCommand> makeCommand =
+            (token, value, type, cmd) => 
+            {
+                cmd.Parameters.Add(new NpgsqlParameter(token, type){ Value = value });
+            };
             foreach(var crypto in list) 
             {
-                if(crypto.id.Length > 20) continue;
-                var cmd = new NpgsqlCommand("INSERT INTO crypto (id, name, symbol, currentprice, imageurl, marketcap, marketcaprank, circulatingsupply, totalvolume) VALUES (:id, :name, :symbol, :currentprice, :imageurl, :marketcap, :marketcaprank, :circulatingsupply, :totalvolume);", conn);
- 
-                NpgsqlParameter id = new NpgsqlParameter("id", NpgsqlTypes.NpgsqlDbType.Text);
-                id.Value = crypto.id;
-
-                NpgsqlParameter name = new NpgsqlParameter("name", NpgsqlTypes.NpgsqlDbType.Text);
-                name.Value = crypto.name;
-
-                NpgsqlParameter sym = new NpgsqlParameter("symbol", NpgsqlTypes.NpgsqlDbType.Text);
-                sym.Value = crypto.symbol;
-
-                NpgsqlParameter curr = new NpgsqlParameter("currentprice", NpgsqlTypes.NpgsqlDbType.Real);
-                curr.Value = crypto.current_price;
-
-                NpgsqlParameter image = new NpgsqlParameter("imageurl", NpgsqlTypes.NpgsqlDbType.Text);
-                image.Value = crypto.image;
-
-                NpgsqlParameter mkt = new NpgsqlParameter("marketcap", NpgsqlTypes.NpgsqlDbType.Real);
-                mkt.Value = crypto.market_cap;
-
-                NpgsqlParameter mktrank = new NpgsqlParameter("marketcaprank", NpgsqlTypes.NpgsqlDbType.Real);
-                mktrank.Value = crypto.market_cap_rank;
-
-                NpgsqlParameter circ = new NpgsqlParameter("circulatingsupply", NpgsqlTypes.NpgsqlDbType.Real);
-                circ.Value = crypto.circulating_supply;
-
-                NpgsqlParameter tot = new NpgsqlParameter("totalvolume", NpgsqlTypes.NpgsqlDbType.Real);
-                tot.Value = crypto.total_volume;
-
-                cmd.Parameters.Add(id);
-                cmd.Parameters.Add(name);
-                cmd.Parameters.Add(sym);
-                cmd.Parameters.Add(curr);
-                cmd.Parameters.Add(image);
-                cmd.Parameters.Add(mkt);
-                cmd.Parameters.Add(mktrank);
-                cmd.Parameters.Add(circ);
-                cmd.Parameters.Add(tot);
+                var cmd = new NpgsqlCommand($"{head} {values}", conn);
+                makeCommand("id",       crypto.id,                  NpgsqlDbType.Text,      cmd);
+                makeCommand("name",     crypto.name,                NpgsqlDbType.Text,      cmd);
+                makeCommand("sym",      crypto.symbol,              NpgsqlDbType.Text,      cmd);
+                makeCommand("price",    crypto.current_price,       NpgsqlDbType.Real,      cmd);
+                makeCommand("imgurl",   crypto.image,               NpgsqlDbType.Text,      cmd);
+                makeCommand("mkt",      crypto.market_cap,          NpgsqlDbType.Real,      cmd);
+                makeCommand("mktrank",  crypto.market_cap_rank,     NpgsqlDbType.Integer,   cmd);
+                makeCommand("circ",     crypto.circulating_supply,  NpgsqlDbType.Bigint,    cmd);
+                makeCommand("vol",      crypto.total_volume,        NpgsqlDbType.Real,      cmd);
                 await cmd.ExecuteNonQueryAsync();
             }
         }
