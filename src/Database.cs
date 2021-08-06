@@ -17,25 +17,11 @@ namespace CoinManager.DB
             connectionString = connString;
         }
 
-        public async Task Connect()
-        {
-            await using var conn = new NpgsqlConnection(connectionString);
-            await conn.OpenAsync();
-            await using (var cmd = new NpgsqlCommand("SELECT * FROM countries", conn))
-            await using (var reader = await cmd.ExecuteReaderAsync())
-            {
-                while(await reader.ReadAsync())
-                {
-                    Console.WriteLine(reader.GetString(0));
-                }
-            }
-        }
-
         public async Task InsertCryptos(List<CoinMarket> list)
         {
             await using var conn = new NpgsqlConnection(connectionString);
             await conn.OpenAsync();
-            string head = "INSERT INTO crypto VALUES";
+            string head = "INSERT INTO \"Crypto\" VALUES";
             string values = "(:id, :name, :sym, :price, :imgurl, :mkt, :mktrank, :circ, :vol);";
 
             Action<string, object, NpgsqlTypes.NpgsqlDbType, NpgsqlCommand> makeCommand =
