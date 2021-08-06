@@ -97,6 +97,13 @@ namespace CoinManager.Shared
         public DateTime? atl_date { get; set; }
         public object roi { get; set; }
         public DateTime? last_updated { get; set; }
+
+        public override string ToString()
+        {
+            return "\"" + id + "\", \"" + name + "\", \"" + symbol + "\", " + current_price.ToString()
+                + ", \"" + image + "\", " + market_cap.ToString() + ", " + market_cap_rank.ToString() 
+                + ", " + circulating_supply.ToString() + ", " + total_volume.ToString();
+        }
     }
     
     public static class StringExtensions
