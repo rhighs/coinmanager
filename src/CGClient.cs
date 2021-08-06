@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -55,6 +57,41 @@ namespace CoinManager.API
                 Console.WriteLine(dataString);
                 return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
             }
+        }
+
+        public async Task<List<CoinMarket>> MarketRanked(int rankCap, string vs="usd")
+        {
+            var coinsList = await GetCoinsList();        
+            var txtStream = File.AppendText("./market.txt");
+            var idsList = new List<string>();
+            var finalList = new List<CoinMarket>();
+            Func<string[], Task> fetchMarket = async (string[] list) => {
+                var mktList = await GetMarketData(vs, list);
+                mktList.ForEach((c) => 
+                        {
+                            if (c.market_cap_rank is not null && c.market_cap_rank < rankCap)
+                                finalList.Add(c);
+                        });
+            };
+            for(int i = 0; i < coinsList.Count(); i++)
+            {
+                idsList.Add(coinsList.ElementAt(i).id);
+                if(i%100== 0)
+                {
+                    var arr = idsList.ToArray();
+                    await fetchMarket(idsList.ToArray());
+                    idsList.Clear();    
+                }
+            }
+            await fetchMarket(idsList.ToArray());
+            return finalList;
+        }
+
+        public async Task DumpMarketJson(int rankCap, string vs="usd")
+        {
+            var list = await MarketRanked(rankCap, vs);
+            string json = JsonSerializer.Serialize<List<CoinMarket>>(list);
+            File.WriteAllText("./market.json", json);
         }
     }
 }
