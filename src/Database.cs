@@ -24,7 +24,7 @@ namespace CoinManager.DB
             string head = "INSERT INTO \"Crypto\" VALUES";
             string values = "(:id, :name, :sym, :price, :imgurl, :mkt, :mktrank, :circ, :vol);";
 
-            Action<string, object, NpgsqlTypes.NpgsqlDbType, NpgsqlCommand> makeCommand =
+            Action<string, object, NpgsqlTypes.NpgsqlDbType, NpgsqlCommand> buildCommand =
             (token, value, type, cmd) => 
             {
                 cmd.Parameters.Add(new NpgsqlParameter(token, type){ Value = value });
@@ -32,15 +32,15 @@ namespace CoinManager.DB
             foreach(var crypto in list) 
             {
                 var cmd = new NpgsqlCommand($"{head} {values}", conn);
-                makeCommand("id",       crypto.id,                  NpgsqlDbType.Text,      cmd);
-                makeCommand("name",     crypto.name,                NpgsqlDbType.Text,      cmd);
-                makeCommand("sym",      crypto.symbol,              NpgsqlDbType.Text,      cmd);
-                makeCommand("price",    crypto.current_price,       NpgsqlDbType.Real,      cmd);
-                makeCommand("imgurl",   crypto.image,               NpgsqlDbType.Text,      cmd);
-                makeCommand("mkt",      crypto.market_cap,          NpgsqlDbType.Real,      cmd);
-                makeCommand("mktrank",  crypto.market_cap_rank,     NpgsqlDbType.Integer,   cmd);
-                makeCommand("circ",     crypto.circulating_supply,  NpgsqlDbType.Bigint,    cmd);
-                makeCommand("vol",      crypto.total_volume,        NpgsqlDbType.Real,      cmd);
+                buildCommand("id",       crypto.id,                  NpgsqlDbType.Text,      cmd);
+                buildCommand("name",     crypto.name,                NpgsqlDbType.Text,      cmd);
+                buildCommand("sym",      crypto.symbol,              NpgsqlDbType.Text,      cmd);
+                buildCommand("price",    crypto.current_price,       NpgsqlDbType.Real,      cmd);
+                buildCommand("imgurl",   crypto.image,               NpgsqlDbType.Text,      cmd);
+                buildCommand("mkt",      crypto.market_cap,          NpgsqlDbType.Real,      cmd);
+                buildCommand("mktrank",  crypto.market_cap_rank,     NpgsqlDbType.Integer,   cmd);
+                buildCommand("circ",     crypto.circulating_supply,  NpgsqlDbType.Bigint,    cmd);
+                buildCommand("vol",      crypto.total_volume,        NpgsqlDbType.Real,      cmd);
                 await cmd.ExecuteNonQueryAsync();
             }
         }

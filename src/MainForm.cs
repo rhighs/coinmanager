@@ -13,6 +13,7 @@ namespace CoinManager.GUI
         public CoinsForm(string title) : base()
         {
             Title = title;
+
             var user = new User
             {
                 Username = "rob",

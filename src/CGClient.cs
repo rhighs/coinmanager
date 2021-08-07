@@ -65,6 +65,7 @@ namespace CoinManager.API
             var txtStream = File.AppendText("./market.txt");
             var idsList = new List<string>();
             var finalList = new List<CoinMarket>();
+            var maxParams = 100;
             Func<string[], Task> fetchMarket = async (string[] list) => {
                 var mktList = await GetMarketData(vs, list);
                 mktList.ForEach((c) => 
@@ -76,7 +77,7 @@ namespace CoinManager.API
             for(int i = 0; i < coinsList.Count(); i++)
             {
                 idsList.Add(coinsList.ElementAt(i).id);
-                if(i%100== 0)
+                if(i % maxParams == 0)
                 {
                     var arr = idsList.ToArray();
                     await fetchMarket(idsList.ToArray());

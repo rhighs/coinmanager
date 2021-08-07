@@ -132,18 +132,3 @@ namespace CoinManager.ApiData
         public static string Trending =            Base + "/search/trending";
     }
 }
-
-namespace CoinManager.DbData
-{
-    public static class DbConnection
-    {
-        public static string ConnectionString = "";
-    }
-
-    public class User 
-    {
-        public string Username { get; set; }
-        public int UserId { get; set; }
-        public int WalletId { get; set; }
-    }
-}
