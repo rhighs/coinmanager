@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 
-using CoinManager.DbData;
-
 namespace CoinManager.GUI
 {
     public class CoinsForm : Form
@@ -14,14 +12,7 @@ namespace CoinManager.GUI
         {
             Title = title;
 
-            var user = new User
-            {
-                Username = "rob",
-                UserId = 1,
-                WalletId = 1
-            };
-
-            var wallet = new Wallet(user);
+            var wallet = new Wallet();
             var tabs = new TabDrawer();
             var listTest = new TabDrawer();
             var coinsList = new CoinsList();

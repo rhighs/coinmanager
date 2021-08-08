@@ -4,22 +4,18 @@ using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 
-using CoinManager.DbData;
-using CoinManager.Shared;
+using CoinManager.Models.CG;
 
 namespace CoinManager.GUI
 {
     public class Wallet : Panel
     {
-        public User User { get; set; }
 
-        public Wallet(User user)
+        public Wallet()
         {
-            User = user;
             Func<DynamicLayout> createLayout = () =>
             {
                 var l = new DynamicLayout();
-                l.Add(new Label(){ Text = User.Username });
                 var t = new TableLayout();
                 t.Rows.Add(new TableRow(new Label() { Text = "una cripto a caso" }));
                 t.Rows.Add(new TableRow(new Label() { Text = "una cripto a caso" }));

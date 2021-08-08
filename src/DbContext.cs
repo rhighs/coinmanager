@@ -26,9 +26,12 @@ namespace CoinManager.EF
         public DbSet<Loan> Loan { get; set; }
         private string connectionString;
 
+        public static CMDbContext Instance;
+
         public CMDbContext(string host, string dbName, string username, string password) 
         {
             connectionString = $"Host={host};Database={dbName};Username={username};Password={password}";
+            Instance = this;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

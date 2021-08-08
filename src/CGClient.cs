@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using CoinManager.ApiData;
-using CoinManager.Shared;
+using CoinManager.Models.CG;
 
 namespace CoinManager.API
 {
