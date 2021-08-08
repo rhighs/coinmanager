@@ -2,7 +2,88 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace CoinManager.Shared
+namespace CoinManager.ApiData
+{
+    public static class CGPaths
+    {
+        public static string Base =                "https://api.coingecko.com/api/v3";
+        public static string Ping =                Base + "/ping";
+        public static string SimplePrice =         Base + "/simple/price";
+        public static string SimpleWithAddress =   Base + "/simple/token/price/{0}";
+        public static string CoinsList =           Base + "/coins/list";
+        public static string CoinsMarket =         Base + "/coins/markets";
+        public static string CoinsDataId =         Base + "/coins/{0}";
+        public static string CoinHistoryId =       Base + "/coins/{0}/history";
+        public static string Trending =            Base + "/search/trending";
+    }
+
+    public static class RDPaths
+    {
+        public static string Base =                "https://random-data-api.com/api";
+        public static string RandomUser =          Base + "/users/random_user";
+    }
+}
+
+namespace CoinManager.Models.RD
+{
+    public class Employment
+    {
+        public string title { get; set; }
+        public string key_skill { get; set; }
+    }
+
+    public class Coordinates
+    {
+        public double lat { get; set; }
+        public double lng { get; set; }
+    }
+
+    public class Address
+    {
+        public string city { get; set; }
+        public string street_name { get; set; }
+        public string street_address { get; set; }
+        public string zip_code { get; set; }
+        public string state { get; set; }
+        public string country { get; set; }
+        public Coordinates coordinates { get; set; }
+    }
+
+    public class CreditCard
+    {
+        public string cc_number { get; set; }
+    }
+
+    public class Subscription
+    {
+        public string plan { get; set; }
+        public string status { get; set; }
+        public string payment_method { get; set; }
+        public string term { get; set; }
+    }
+
+    public class User
+    {
+        public int id { get; set; }
+        public string uid { get; set; }
+        public string password { get; set; }
+        public string first_name { get; set; }
+        public string last_name { get; set; }
+        public string username { get; set; }
+        public string email { get; set; }
+        public string avatar { get; set; }
+        public string gender { get; set; }
+        public string phone_number { get; set; }
+        public string social_insurance_number { get; set; }
+        public string date_of_birth { get; set; }
+        public Employment employment { get; set; }
+        public Address address { get; set; }
+        public CreditCard credit_card { get; set; }
+        public Subscription subscription { get; set; }
+    }
+}
+
+namespace CoinManager.Models.CG
 {
     public class SimpleCoin
     {
@@ -114,21 +195,5 @@ namespace CoinManager.Shared
             null => throw new NullReferenceException(nameof(input)),
             _ => input[0].ToString().ToUpper() + input.Substring(1) //default
         };
-    }
-}
-
-namespace CoinManager.ApiData
-{
-    public static class CGPaths
-    {
-        public static string Base =                "https://api.coingecko.com/api/v3";
-        public static string Ping =                Base + "/ping";
-        public static string SimplePrice =         Base + "/simple/price";
-        public static string SimpleWithAddress =   Base + "/simple/token/price/{0}";
-        public static string CoinsList =           Base + "/coins/list";
-        public static string CoinsMarket =         Base + "/coins/markets";
-        public static string CoinsDataId =         Base + "/coins/{0}";
-        public static string CoinHistoryId =       Base + "/coins/{0}/history";
-        public static string Trending =            Base + "/search/trending";
     }
 }
