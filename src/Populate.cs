@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using CoinManager.EF;
+using CoinManager.API;
 using CoinManager.ApiData;
 using CoinManager.Models.RD;
 
@@ -15,11 +16,13 @@ namespace CoinManager.Util
     {
         private HttpClient http;
         private CMDbContext db;
+        private CoingeckoClient coinGecko;
 
         public Populator()
         {
             http = new HttpClient();
             db = CMDbContext.Instance;
+            coinGecko = new CoingeckoClient();
         }
 
         private async Task<List<User>> RandomUsers(int noUsers)
@@ -39,6 +42,26 @@ namespace CoinManager.Util
                     Password = u.password
                     };
                 }));
+            db.SaveChanges();
+        }
+
+        public async Task GenerateCryptos(int maxRank)
+        {
+            var marketData = await coinGecko.MarketRanked(maxRank);
+            db.Add(marketData.Select(c => {
+                    return new Crypto {
+                        Id = c.id,
+                        Name = c.name,
+                        Symbol = c.symbol,
+                        CurrentPrice = c.current_price.Value,
+                        ImageUrl = c.image,
+                        MarketCap = c.market_cap.Value,
+                        MarketCapRank = c.market_cap_rank.Value,
+                        CirculatingSupply = Convert.ToInt32(c.circulating_supply),
+                        TotalVolume = c .total_volume.Value
+                    };
+                })
+            );
             db.SaveChanges();
         }
     }
