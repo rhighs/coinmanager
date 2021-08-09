@@ -83,6 +83,50 @@ namespace CoinManager.Models.RD
     }
 }
 
+namespace CoinManager.Models.GUI
+{
+    public class Coin : IEquatable<Coin>, IComparable<Coin>
+    {
+        private string symbol;
+        private string name;
+
+        public string Id { get; set; }
+        public string Name {
+            get { return name; }
+            set { name = value.FirstUpper(); }
+        }
+        public double Price { get; set; }
+        public int Rank { get; set; }
+        public string Symbol {
+            get { return symbol; }
+            set { symbol = value.ToUpper(); }
+        }
+
+        public bool Equals(Coin? coin)
+        {
+            if(coin == null) return false;
+            return coin.Rank == this.Rank;
+        }
+
+        public int CompareTo(Coin compareCoin)
+        {
+            if(compareCoin == null) return 1;
+            else return this.Rank.CompareTo(compareCoin.Rank);
+        }
+
+    }
+
+    public static class StringExtensions
+    {
+        public static string FirstUpper(this string input) => 
+        input switch
+        {
+            null => throw new NullReferenceException(nameof(input)),
+            _ => input[0].ToString().ToUpper() + input.Substring(1) //default
+        };
+    }
+}
+
 namespace CoinManager.Models.CG
 {
     public class SimpleCoin
@@ -158,7 +202,7 @@ namespace CoinManager.Models.CG
         public string image { get; set; }
         public double? current_price { get; set; }
         public double? market_cap { get; set; }
-        public double? market_cap_rank { get; set; }
+        public int? market_cap_rank { get; set; }
         public double? fully_diluted_valuation { get; set; }
         public double? total_volume { get; set; }
         public double? high_24h { get; set; }

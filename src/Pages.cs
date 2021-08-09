@@ -7,6 +7,7 @@ using Eto.Drawing;
 
 using CoinManager.EF;
 using CoinManager.Models.CG;
+using CoinManager.Models.GUI;
 
 namespace CoinManager.GUI
 {
@@ -37,20 +38,23 @@ namespace CoinManager.GUI
         public CoinsList()
         {
             db = CMDbContext.Instance;
-            var coins = db.Crypto.Select(c => new SimpleCoin{
-                    name = c.Name,
-                    symbol = c.Symbol,
-                    id = c.Id
+            var coins = db.Crypto.Select(c => new Coin{
+                    Name = c.Name,
+                    Symbol = c.Symbol,
+                    Id = c.Id,
+                    Price = c.CurrentPrice,
+                    Rank = c.MarketCapRank
                     });
             table = new TableLayout();
             table.Spacing = new Size(10, 10);
             table.Padding = new Padding(10, 10, 10, 10);
-
-            UpdateList(coins.ToList());
+            var coinsList = coins.ToList();
+            coinsList.Sort();
+            UpdateList(coinsList);
             Content = table;
         }
 
-        public void UpdateList(List<SimpleCoin> coins)
+        public void UpdateList(List<Coin> coins)
         {
             table.RemoveAll();
             coins.ForEach(c =>
@@ -66,8 +70,9 @@ namespace CoinManager.GUI
                 };
 
                 var row = new TableRow(
-                        new TableCell(new Label() { Text = c.symbol }, true),
-                        new TableCell(new Label() { Text = c.name }, true),
+                        new TableCell(new Label() { Text = c.Symbol}, true),
+                        new TableCell(new Label() { Text = c.Name }, true),
+                        new TableCell(new Label() { Text = c.Price.ToString()}, true),
                         TableLayout.AutoSized(button) 
                         );
                 table.Rows.Add(row);
