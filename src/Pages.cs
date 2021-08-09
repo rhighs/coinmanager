@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using Eto.Forms;
 using Eto.Drawing;
 
+using CoinManager.EF;
 using CoinManager.Models.CG;
 
 namespace CoinManager.GUI
@@ -17,10 +19,6 @@ namespace CoinManager.GUI
             {
                 var l = new DynamicLayout();
                 var t = new TableLayout();
-                t.Rows.Add(new TableRow(new Label() { Text = "una cripto a caso" }));
-                t.Rows.Add(new TableRow(new Label() { Text = "una cripto a caso" }));
-                t.Rows.Add(new TableRow(new Label() { Text = "una cripto a caso" }));
-                t.Rows.Add(new TableRow(new Label() { Text = "una cripto a caso" }));
                 l.Add(t);
                 return l;
             };
@@ -34,29 +32,21 @@ namespace CoinManager.GUI
 
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
+        private CMDbContext db;
 
         public CoinsList()
         {
+            db = CMDbContext.Instance;
+            var coins = db.Crypto.Select(c => new SimpleCoin{
+                    name = c.Name,
+                    symbol = c.Symbol,
+                    id = c.Id
+                    });
             table = new TableLayout();
             table.Spacing = new Size(10, 10);
             table.Padding = new Padding(10, 10, 10, 10);
 
-            Action tempFill = () => {
-                var tempList = new List<SimpleCoin>();
-                for(int i = 0; i < 100; i++)
-                {
-                    var simpleCoin = new SimpleCoin
-                    {
-                        name = "butcoin",
-                        symbol = "btc",
-                        id = "bitcoin"
-                    };
-                    tempList.Add(simpleCoin);
-                }
-                UpdateList(tempList);
-            };
-
-            tempFill();
+            UpdateList(coins.ToList());
             Content = table;
         }
 

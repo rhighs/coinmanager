@@ -117,7 +117,6 @@ namespace CoinManager.GUI
     {
         public TabDrawer()
         {
-            Size = new Size(1000, 100);
         }
 
         public void AddPage(string pageTitle, Control item)
