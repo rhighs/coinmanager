@@ -22,7 +22,7 @@ CREATE TABLE "Crypto" (
     "CurrentPrice" FLOAT NOT NULL,
     "ImageUrl" CRYPTO_IMAGE,
     "MarketCap" FLOAT NOT NULL,
-    "MarketCapRank" FLOAT NOT NULL,
+    "MarketCapRank" INTEGER NOT NULL,
     "CirculatingSupply" BIGINT,
     "TotalVolume" FLOAT
 );
