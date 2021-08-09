@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -49,14 +50,9 @@ namespace CoinManager.API
             }
             var data = (await http.GetAsync(completeUrl)).Content;
             var dataString = await data.ReadAsStringAsync();
-            try {
-                return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
-            }
-            catch
-            {
-                Console.WriteLine(dataString);
-                return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
-            }
+            Console.WriteLine($"reveiced {string.Join(",", ids)}");
+            Thread.Sleep(1000);
+            return JsonSerializer.Deserialize<List<CoinMarket>>(dataString);
         }
 
         public async Task<List<CoinMarket>> MarketRanked(int rankCap, string vs="usd")
@@ -65,7 +61,7 @@ namespace CoinManager.API
             var txtStream = File.AppendText("./market.txt");
             var idsList = new List<string>();
             var finalList = new List<CoinMarket>();
-            var maxParams = 100;
+            var maxParams = 30;
             Func<string[], Task> fetchMarket = async (string[] list) => {
                 var mktList = await GetMarketData(vs, list);
                 mktList.ForEach((c) => 
@@ -76,6 +72,7 @@ namespace CoinManager.API
             };
             for(int i = 0; i < coinsList.Count(); i++)
             {
+                if(finalList.Count == rankCap - 1) return finalList;
                 idsList.Add(coinsList.ElementAt(i).id);
                 if(i % maxParams == 0)
                 {
@@ -84,6 +81,7 @@ namespace CoinManager.API
                     idsList.Clear();    
                 }
             }
+            if(idsList.Count == 0) return finalList;
             await fetchMarket(idsList.ToArray());
             return finalList;
         }

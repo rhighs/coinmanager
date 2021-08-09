@@ -75,7 +75,7 @@ namespace CoinManager.EF
         public string ImageUrl          { get; set; }
         public double MarketCap         { get; set; }
         public double MarketCapRank     { get; set; }
-        public int CirculatingSupply    { get; set; }
+        public long CirculatingSupply    { get; set; }
         public double TotalVolume       { get; set; }
     }
 
