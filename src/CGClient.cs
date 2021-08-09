@@ -64,15 +64,19 @@ namespace CoinManager.API
             var maxParams = 30;
             Func<string[], Task> fetchMarket = async (string[] list) => {
                 var mktList = await GetMarketData(vs, list);
+                if(list.Length == 0) return;
                 mktList.ForEach((c) => 
                         {
-                            if (c.market_cap_rank is not null && c.market_cap_rank < rankCap)
+                            if (c.market_cap_rank is not null && c.market_cap_rank <= rankCap)
                                 finalList.Add(c);
                         });
             };
             for(int i = 0; i < coinsList.Count(); i++)
             {
-                if(finalList.Count == rankCap - 1) return finalList;
+                if(finalList.Count < rankCap){
+                    Console.WriteLine("All coins retreived, stopping procedure...");
+                    break;
+                }
                 idsList.Add(coinsList.ElementAt(i).id);
                 if(i % maxParams == 0)
                 {
@@ -81,7 +85,6 @@ namespace CoinManager.API
                     idsList.Clear();    
                 }
             }
-            if(idsList.Count == 0) return finalList;
             await fetchMarket(idsList.ToArray());
             return finalList;
         }
