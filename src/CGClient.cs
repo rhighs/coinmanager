@@ -73,7 +73,7 @@ namespace CoinManager.API
             };
             for(int i = 0; i < coinsList.Count(); i++)
             {
-                if(finalList.Count < rankCap){
+                if(finalList.Count >= rankCap){
                     Console.WriteLine("All coins retreived, stopping procedure...");
                     break;
                 }
