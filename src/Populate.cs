@@ -27,7 +27,7 @@ namespace CoinManager.Util
 
         private async Task<List<User>> RandomUsers(int noUsers)
         {
-            var httpResponse = await http.PostAsync(RDPaths.RandomUser + "?size=" + noUsers.ToString(), null);
+            var httpResponse = await http.GetAsync(RDPaths.RandomUser + "?size=" + noUsers.ToString());
             var stringContent = await httpResponse.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<List<User>>(stringContent);
         }
@@ -35,20 +35,21 @@ namespace CoinManager.Util
         public async Task GenerateUsers(int noUsers)
         {
             var list = await RandomUsers(noUsers);
-            db.Add(list.Select(u => {
+            var mapped = list.Select(u => {
                 return new UserStandard {
                     Id = u.id,
                     Username = u.username,
                     Password = u.password
                     };
-                }));
+                }).ToList();
+            mapped.ForEach(u => db.UserStandard.Add(u));
             db.SaveChanges();
         }
 
         public async Task GenerateCryptos(int maxRank)
         {
             var marketData = await coinGecko.MarketRanked(maxRank);
-            db.Add(marketData.Select(c => {
+            var mapped = marketData.Select(c => {
                     return new Crypto {
                         Id = c.id,
                         Name = c.name,
@@ -57,11 +58,11 @@ namespace CoinManager.Util
                         ImageUrl = c.image,
                         MarketCap = c.market_cap.Value,
                         MarketCapRank = c.market_cap_rank.Value,
-                        CirculatingSupply = Convert.ToInt32(c.circulating_supply),
+                        CirculatingSupply = Convert.ToInt64(c.circulating_supply.Value),
                         TotalVolume = c .total_volume.Value
                     };
-                })
-            );
+                }).ToList();
+            mapped.ForEach(c => db.Crypto.Add(c));
             db.SaveChanges();
         }
     }
