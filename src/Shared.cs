@@ -88,7 +88,7 @@ namespace CoinManager.Models
 
     namespace GUI
     {
-        public class Coin : IEquatable<Coin>, IComparable<Coin>
+        public class GuiCrypto : IEquatable<GuiCrypto>, IComparable<GuiCrypto>
         {
             private string symbol;
             private string name;
@@ -105,13 +105,13 @@ namespace CoinManager.Models
                 set { symbol = value.ToUpper(); }
             }
 
-            public bool Equals(Coin? coin)
+            public bool Equals(GuiCrypto? coin)
             {
                 if(coin == null) return false;
                 return coin.Rank == this.Rank;
             }
 
-            public int CompareTo(Coin compareCoin)
+            public int CompareTo(GuiCrypto compareCoin)
             {
                 if(compareCoin == null) return 1;
                 else return this.Rank.CompareTo(compareCoin.Rank);
