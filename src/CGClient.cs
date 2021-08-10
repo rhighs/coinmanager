@@ -58,7 +58,6 @@ namespace CoinManager.API
         public async Task<List<CoinMarket>> MarketRanked(int rankCap, string vs="usd")
         {
             var coinsList = await GetCoinsList();        
-            var txtStream = File.AppendText("./market.txt");
             var idsList = new List<string>();
             var finalList = new List<CoinMarket>();
             var maxParams = 30;
