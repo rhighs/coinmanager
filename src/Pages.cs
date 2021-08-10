@@ -6,13 +6,13 @@ using Eto.Forms;
 using Eto.Drawing;
 
 using CoinManager.EF;
-using CoinManager.Models.CG;
 using CoinManager.Models.GUI;
 
 namespace CoinManager.GUI
 {
     public class Wallet : Panel
     {
+        public string Name { get; } = "Wallet";
 
         public Wallet()
         {
@@ -29,22 +29,22 @@ namespace CoinManager.GUI
 
     public class CoinsList : Scrollable
     {
-        public string Name { get; private set; } = "Coins list";
+        public string Name { get; } = "Coins list";
 
+        private CMDbContext db;
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
-        private CMDbContext db;
 
         public CoinsList()
         {
             db = CMDbContext.Instance;
-            var coins = db.Crypto.Select(c => new Coin{
+            var coins = db.Crypto.Select(c => new GuiCrypto{
                     Name = c.Name,
                     Symbol = c.Symbol,
                     Id = c.Id,
                     Price = c.CurrentPrice,
                     Rank = c.MarketCapRank
-                    });
+                });
             table = new TableLayout();
             table.Spacing = new Size(10, 10);
             table.Padding = new Padding(10, 10, 10, 10);
@@ -54,7 +54,7 @@ namespace CoinManager.GUI
             Content = table;
         }
 
-        public void UpdateList(List<Coin> coins)
+        public void UpdateList(List<GuiCrypto> coins)
         {
             table.RemoveAll();
             coins.ForEach(c =>
@@ -64,7 +64,11 @@ namespace CoinManager.GUI
                     Text = "...",
                     Command = new Command((sender, e) =>
                             {
-                                Console.WriteLine("Pop up window to open");
+                                var dialog = new OpenFileDialog();
+                                if(dialog.ShowDialog(this) == DialogResult.Ok)
+                                {
+                                    Console.WriteLine("test");
+                                }
                             }),
                     Width = BUTTON_WIDTH
                 };

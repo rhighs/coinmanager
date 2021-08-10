@@ -1,8 +1,11 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using Eto.Forms;
 using Eto.Drawing;
+
+using CoinManager.EF;
 
 namespace CoinManager.GUI
 {
@@ -10,36 +13,33 @@ namespace CoinManager.GUI
     {
         public CoinsForm(string title) : base()
         {
-            Title = title;
-
             var wallet = new Wallet();
             var tabs = new TabDrawer();
             var listTest = new TabDrawer();
             var coinsList = new CoinsList();
 
             tabs.AddPage(coinsList.Name, coinsList);
-            tabs.AddPage("Wallet", wallet);
-
+            tabs.AddPage(wallet.Name, wallet);
+            
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
-                        var user = loginPage.Username.Text;
-                        var password = loginPage.Password.Text;
-                        var error = loginPage.ErroreMessage;
-                        if(user == "sku" && password == "monti")
+                        Func<bool> verifyLogin = () => {
+                            var dbc = CMDbContext.Instance;
+                            var user = loginPage.Username.Text;
+                            var password = loginPage.Password.Text;
+                            return true;
+                            return dbc
+                                .UserStandard
+                                .FirstOrDefault(u => u.Username == user && u.Password == password) != null;
+                        };
+                        if(verifyLogin())
                         {
                             Content = tabs;
-                            error.Text = "";
                         }
-                        error.Text = "Hai sbagliato username o password, riprova.";
-                        Console.WriteLine(loginPage.Password.Text);
+                        loginPage.ErroreMessage.Text = "Hai sbagliato username o password, riprova.";
                         }));
+            Title = title;
             Content = loginPage;
-        }
-
-        public void ChangeContent(Control control)
-        {
-            Content = control;
-            Console.WriteLine("control chaged");
         }
     }
 
@@ -106,8 +106,8 @@ namespace CoinManager.GUI
             loginButton = new Button()
             {
                 Text = "Login",
-                     Command = OnSubmit,
-                     Size = inputSize
+                Command = OnSubmit,
+                Size = inputSize
             };
             layout.Items.Add(loginButton);
         }
