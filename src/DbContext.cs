@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CoinManager.EF
 {
@@ -36,6 +37,12 @@ namespace CoinManager.EF
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(connectionString);
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Wallet>()
+                .HasKey(w => new { w.UserId , w.CryptoId });
+        }
     }
 
     public class UserStandard
@@ -62,6 +69,7 @@ namespace CoinManager.EF
     {
         [Key]
         public int UserId          { get; set; }
+        [Key]
         public string CryptoId     { get; set; }
         public double Quantity     { get; set; }
     }
