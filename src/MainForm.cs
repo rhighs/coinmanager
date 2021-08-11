@@ -14,12 +14,14 @@ namespace CoinManager.GUI
         public CoinsForm(string title) : base()
         {
             var wallet = new Wallet();
+            var transaction = new Transaction();
             var tabs = new TabDrawer();
             var listTest = new TabDrawer();
             var coinsList = new CoinsList();
 
             tabs.AddPage(coinsList.Name, coinsList);
             tabs.AddPage(wallet.Name, wallet);
+            tabs.AddPage(transaction.Name, transaction);
             
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {

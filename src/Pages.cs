@@ -10,6 +10,42 @@ using CoinManager.Models.GUI;
 
 namespace CoinManager.GUI
 {
+    public class Transaction : Panel
+    {
+         public string Name { get; } = "Transaction";
+        public Transaction()
+        {
+             Func<TableLayout> createLayout = () =>
+            {
+                var t = new TableLayout
+                {
+                    Spacing = new Size(1, 1),
+				    Padding = new Padding(10, 10, 10, 10), 
+				
+                };
+                var filter =
+				(
+					new TableRow(
+				        new TableCell(new Label { Text = "Filter" }, true),
+                        new TableCell(new DropDown { Items = { "All", "Running" } }, true)
+					)
+                );
+                var items = 
+                (
+                    new TableRow(
+                        new TableCell(new ListBox())
+                        
+		            )
+                );
+                t.Rows.Add(filter);
+                t.Rows.Add(items);
+                return t;
+            };
+            Content = createLayout();
+        }
+       
+    }
+    
     public class Wallet : Panel
     {
         public string Name { get; } = "Wallet";
@@ -35,7 +71,7 @@ namespace CoinManager.GUI
                 (
                     new TableRow(
                         new ListBox(),
-			            new CheckBox { Text = "A checkbox" }
+			            new ListBox()
 		            )
                 );
                 t.Rows.Add(titles);
@@ -43,7 +79,7 @@ namespace CoinManager.GUI
                 return t;
             };
             Content = createLayout();
-            var i = Content.Items.items();
+            //var i = Content.Items.items();
         }
     }
 
