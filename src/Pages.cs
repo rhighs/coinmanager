@@ -16,14 +16,34 @@ namespace CoinManager.GUI
 
         public Wallet()
         {
-            Func<DynamicLayout> createLayout = () =>
+            Func<TableLayout> createLayout = () =>
             {
-                var l = new DynamicLayout();
-                var t = new TableLayout();
-                l.Add(t);
-                return l;
+                var t = new TableLayout
+                {
+                    Spacing = new Size(5, 5),
+				    Padding = new Padding(10, 10, 10, 10), 
+				
+                };
+                var titles =
+				(
+					new TableRow(
+						new TableCell(new Label { Text = "First half" }, true), 
+						new TableCell(new Label { Text = "Second half" }, true)
+					)
+                );
+                var items = 
+                (
+                    new TableRow(
+                        new ListBox(),
+			            new CheckBox { Text = "A checkbox" }
+		            )
+                );
+                t.Rows.Add(titles);
+                t.Rows.Add(items);
+                return t;
             };
             Content = createLayout();
+            var i = Content.Items.items();
         }
     }
 

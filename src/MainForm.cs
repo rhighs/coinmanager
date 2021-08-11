@@ -55,7 +55,7 @@ namespace CoinManager.GUI
         private StackLayout layout;
 
         static private Size inputSize = new Size(400, 40);
-        static private string imagePath = "./res/logo.png";
+        static private string imagePath = "/home/json/Scrivania/coinmanager/src/res/logo.png";
         static private Label usernameLabel = new Label(){ Text = "Nome utente" };
         static private Label passwordLabel = new Label(){ Text = "Password" };
 
