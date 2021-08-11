@@ -65,5 +65,36 @@ namespace CoinManager.Util
             mapped.ForEach(c => db.Crypto.Add(c));
             db.SaveChanges();
         }
+
+        public void GenerateWallets(int maxPerUser)
+        {
+            var usersList = db.UserStandard.ToList();
+            usersList.ForEach(u => 
+                    {
+                        var rand = new Random();
+                        var nWallets = rand.Next(0, maxPerUser);
+                        var cryptosList = db.Crypto.ToList();
+                        var nCryptos = cryptosList.Count;
+                        string prevCryptoId = "";
+                        string randomCryptoId = "";
+
+                        for(int i = 0; i < nWallets; i++) 
+                        {
+                            do
+                            {
+                                randomCryptoId = cryptosList.ElementAt(rand.Next(0, nCryptos)).Id;
+                            } while(randomCryptoId == prevCryptoId);
+                            var wallet = new Wallet()
+                            {
+                                UserId = u.Id,
+                                CryptoId = randomCryptoId,
+                                Quantity = rand.NextDouble() / rand.NextDouble()
+                            };
+                            db.Wallet.Add(wallet);
+                            prevCryptoId = randomCryptoId;
+                        }
+                    });
+            db.SaveChanges();
+        }
     }
 }
