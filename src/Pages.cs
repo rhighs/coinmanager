@@ -12,7 +12,7 @@ namespace CoinManager.GUI
 {
     public class Transaction : Panel
     {
-         public string Name { get; } = "Transaction";
+        public string Name { get; } = "Transaction";
         public Transaction()
         {
              Func<TableLayout> createLayout = () =>
@@ -79,7 +79,6 @@ namespace CoinManager.GUI
                 return t;
             };
             Content = createLayout();
-            //var i = Content.Items.items();
         }
     }
 
@@ -90,6 +89,7 @@ namespace CoinManager.GUI
         private CMDbContext db;
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
+        private readonly Size DIALOG_SIZE = new Size(600, 400);
 
         public CoinsList()
         {
@@ -120,11 +120,16 @@ namespace CoinManager.GUI
                     Text = "...",
                     Command = new Command((sender, e) =>
                             {
-                                var dialog = new OpenFileDialog();
-                                if(dialog.ShowDialog(this) == DialogResult.Ok)
+                                var content = new CryptoDialog
                                 {
-                                    Console.WriteLine("test");
-                                }
+                                    Size = DIALOG_SIZE
+                                };
+                                var dialog = new Dialog()
+                                {
+                                    Size = content.Size,
+                                    Content = content
+                                };
+                                dialog.ShowModal();
                             }),
                     Width = BUTTON_WIDTH
                 };
@@ -137,6 +142,30 @@ namespace CoinManager.GUI
                         );
                 table.Rows.Add(row);
             });
+        }
+    }
+
+    public class CryptoDialog : Panel
+    {
+        public CryptoDialog()
+        {
+            var c = new DynamicLayout();
+            c.BeginVertical();
+            c.BeginHorizontal();
+            c.Add(new TextArea());
+            c.Add(new TextArea());
+            c.Add(new TextArea());
+            c.EndHorizontal();
+            c.EndVertical();
+
+            c.BeginVertical();
+            c.BeginHorizontal();
+            c.Add(new TextArea());
+            c.Add(new TextArea());
+            c.Add(new TextArea());
+            c.EndHorizontal();
+            c.EndVertical();
+            Content = c;
         }
     }
 }
