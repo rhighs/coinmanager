@@ -13,41 +13,59 @@ using CoinManager.Models.GUI;
 
 namespace CoinManager.GUI
 {
-    public class Transaction : Panel
+    public class Transaction : Scrollable
     {
+        private CMDbContext db;
         public string Name { get; } = "Transaction";
-        public Transaction()
-        {
-             Func<TableLayout> createLayout = () =>
-            {
-                var t = new TableLayout
+        private TableLayout layout = new TableLayout
                 {
-                    Spacing = new Size(1, 1),
+                    Spacing = new Size(5, 5),
 				    Padding = new Padding(10, 10, 10, 10), 
 				
                 };
-                var filter =
-				(
-					new TableRow(
-				        new TableCell(new Label { Text = "Filter" }, true),
-                        new TableCell(new DropDown { Items = { "All", "Running" } }, true)
-					)
-                );
-                var items = 
-                (
-                    new TableRow(
-                        new TableCell(new ListBox())
+        public Transaction()
+        {
+            var row = new TableRow(
+                new TableCell(new Label() { Text = "Id"}, true),
+                        new TableCell(new Label() { Text = "DestinationId"}, true),
+                        new TableCell(new Label() { Text = "CryptoId"}, true),
+                        new TableCell(new Label() { Text = "CryptoQuantity"}, true),
+                        new TableCell(new Label() { Text = "State"}, true)
                         
-		            )
-                );
-                t.Rows.Add(filter);
-                t.Rows.Add(items);
-                return t;
-            };
-            Content = createLayout();
+                        );
+            layout.Rows.Add(row);
+            db = CMDbContext.Instance;
+            var trans = db.Transaction.Select(t => new GuiTransaction{
+                    Id = t.Id,
+                    SourceId = t.SourceId,
+                    DestinationId = t.DestinationId,
+                    CryptoId = t.CryptoId,
+                    //StartDate = t.StartDate,
+                    //FinishDate = t.FinishDate,
+                    CryptoQuantity = t.CryptoQuantity,
+                    State = t.State
+                }).ToList();
+            FillLayout(trans);
+            Content = layout;
+            
         }
-       
+       public void FillLayout(List<GuiTransaction> trans)
+        {
+            trans.ForEach(t =>
+            {
+               var row = new TableRow(
+                        new TableCell(new Label() { Text = t.Id.ToString()}, true),
+                        new TableCell(new Label() { Text = t.DestinationId.ToString() }, true),
+                        new TableCell(new Label() { Text = t.CryptoId.ToString()}, true),
+                        new TableCell(new Label() { Text = t.CryptoQuantity.ToString()}, true),
+                        new TableCell(new Label() { Text = t.State.ToString()}, true)
+                        
+                        );
+                layout.Rows.Add(row);
+            });
+        }
     }
+    
     
     public class Wallet : Panel
     {

@@ -118,6 +118,25 @@ namespace CoinManager.Models
             }
 
         }
+
+        public class GuiTransaction
+        {
+            private int id;
+            private int sourceId;
+            private int destinationId;
+            private string cryptoId;
+            private int state;
+
+            public int Id {get;set;}
+            public int SourceId {get;set;}
+            public int DestinationId {get;set;}
+            public string CryptoId {get;set;}
+            public int State {get;set;}
+            public DateTime StartDate{get;set;}
+            public DateTime FinishDate{get;set;}
+            public double CryptoQuantity{get;set;}
+            
+        }
     }
 
     namespace CG
