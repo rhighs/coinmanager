@@ -40,10 +40,10 @@ CREATE TABLE "Transaction" (
     "Id" INTEGER NOT NULL PRIMARY KEY,
     "SourceId" Integer NOT NULL,
     "DestitationId" Integer NOT NULL,
-    "CRYPTOId" CRYPTO_ID,
+    "CryptoId" CRYPTO_ID,
     "StartDate" TIMESTAMP WITH TIME ZONE,
     "FinishDate" TIMESTAMP WITH TIME ZONE,
-    "CRYPTOQuantity" FLOAT NOT NULL,
+    "CryptoQuantity" FLOAT NOT NULL,
     "State" INTEGER NOT NULL,
     CONSTRAINT ValidState CHECK ( "State" BETWEEN 1 AND 3 )
 );
