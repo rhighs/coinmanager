@@ -39,7 +39,7 @@ CREATE TABLE "Wallet" (
 CREATE TABLE "Transaction" (
     "Id" INTEGER NOT NULL PRIMARY KEY,
     "SourceId" Integer NOT NULL,
-    "DestitationId" Integer NOT NULL,
+    "DestinationId" Integer NOT NULL,
     "CryptoId" CRYPTO_ID,
     "StartDate" TIMESTAMP WITH TIME ZONE,
     "FinishDate" TIMESTAMP WITH TIME ZONE,
