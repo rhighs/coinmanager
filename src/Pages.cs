@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Net.Http;
+using System.IO;
 
 using Eto.Forms;
 using Eto.Drawing;
@@ -10,41 +13,59 @@ using CoinManager.Models.GUI;
 
 namespace CoinManager.GUI
 {
-    public class Transaction : Panel
+    public class Transaction : Scrollable
     {
-         public string Name { get; } = "Transaction";
-        public Transaction()
-        {
-             Func<TableLayout> createLayout = () =>
-            {
-                var t = new TableLayout
+        private CMDbContext db;
+        public string Name { get; } = "Transaction";
+        private TableLayout layout = new TableLayout
                 {
-                    Spacing = new Size(1, 1),
+                    Spacing = new Size(5, 5),
 				    Padding = new Padding(10, 10, 10, 10), 
 				
                 };
-                var filter =
-				(
-					new TableRow(
-				        new TableCell(new Label { Text = "Filter" }, true),
-                        new TableCell(new DropDown { Items = { "All", "Running" } }, true)
-					)
-                );
-                var items = 
-                (
-                    new TableRow(
-                        new TableCell(new ListBox())
+        public Transaction()
+        {
+            var row = new TableRow(
+                new TableCell(new Label() { Text = "Id"}, true),
+                        new TableCell(new Label() { Text = "DestinationId"}, true),
+                        new TableCell(new Label() { Text = "CryptoId"}, true),
+                        new TableCell(new Label() { Text = "CryptoQuantity"}, true),
+                        new TableCell(new Label() { Text = "State"}, true)
                         
-		            )
-                );
-                t.Rows.Add(filter);
-                t.Rows.Add(items);
-                return t;
-            };
-            Content = createLayout();
+                        );
+            layout.Rows.Add(row);
+            db = CMDbContext.Instance;
+            var trans = db.Transaction.Select(t => new GuiTransaction{
+                    Id = t.Id,
+                    SourceId = t.SourceId,
+                    DestinationId = t.DestinationId,
+                    CryptoId = t.CryptoId,
+                    //StartDate = t.StartDate,
+                    //FinishDate = t.FinishDate,
+                    CryptoQuantity = t.CryptoQuantity,
+                    State = t.State
+                }).ToList();
+            FillLayout(trans);
+            Content = layout;
+            
         }
-       
+       public void FillLayout(List<GuiTransaction> trans)
+        {
+            trans.ForEach(t =>
+            {
+               var row = new TableRow(
+                        new TableCell(new Label() { Text = t.Id.ToString()}, true),
+                        new TableCell(new Label() { Text = t.DestinationId.ToString() }, true),
+                        new TableCell(new Label() { Text = t.CryptoId.ToString()}, true),
+                        new TableCell(new Label() { Text = t.CryptoQuantity.ToString()}, true),
+                        new TableCell(new Label() { Text = t.State.ToString()}, true)
+                        
+                        );
+                layout.Rows.Add(row);
+            });
+        }
     }
+    
     
     public class Wallet : Panel
     {
@@ -79,7 +100,6 @@ namespace CoinManager.GUI
                 return t;
             };
             Content = createLayout();
-            //var i = Content.Items.items();
         }
     }
 
@@ -90,6 +110,7 @@ namespace CoinManager.GUI
         private CMDbContext db;
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
+        private readonly Size DIALOG_SIZE = new Size(600, 400);
 
         public CoinsList()
         {
@@ -120,11 +141,16 @@ namespace CoinManager.GUI
                     Text = "...",
                     Command = new Command((sender, e) =>
                             {
-                                var dialog = new OpenFileDialog();
-                                if(dialog.ShowDialog(this) == DialogResult.Ok)
+                                var content = new CryptoDialog(c.Id)
                                 {
-                                    Console.WriteLine("test");
-                                }
+                                    Size = DIALOG_SIZE
+                                };
+                                var dialog = new Dialog()
+                                {
+                                    Size = content.Size,
+                                    Content = content
+                                };
+                                dialog.ShowModal();
                             }),
                     Width = BUTTON_WIDTH
                 };
@@ -137,6 +163,56 @@ namespace CoinManager.GUI
                         );
                 table.Rows.Add(row);
             });
+        }
+    }
+
+    public class CryptoDialog : Panel
+    {
+        private CMDbContext db;
+
+        public CryptoDialog(string cryptoId)
+        {
+            db = CMDbContext.Instance;
+
+            var c = new DynamicLayout();
+            var image = Task.Run(async () => 
+            {
+                return await GetImage(cryptoId);
+            }).Result;
+
+            c.BeginVertical();
+            c.BeginHorizontal();
+            c.Add(image);
+            c.Add(new Label{ Text = db.Crypto.Find(cryptoId).Name });
+            c.Add(new Label{ Text = $"({db.Crypto.Find(cryptoId).Symbol.ToUpper()})" });
+            c.EndHorizontal();
+            c.EndVertical();
+
+            c.BeginVertical();
+            c.BeginHorizontal();
+            c.Add(new TextArea());
+            c.Add(new TextArea());
+            c.EndHorizontal();
+            c.EndVertical();
+
+            Content = c;
+        }
+
+        private async Task<ImageView> GetImage(string cryptoId)
+        {
+            var http = new HttpClient();
+            var url = db.Crypto.Find(cryptoId).ImageUrl;
+            var res = await http.GetAsync(url);
+            var stream = await res.Content.ReadAsStreamAsync();
+            var memStream = new MemoryStream();
+            await stream.CopyToAsync(memStream);
+            memStream.Position = 0;
+
+            return new ImageView
+            {
+                Image = new Bitmap(memStream),
+                Size = new Size(100, 100)
+            };
         }
     }
 }
