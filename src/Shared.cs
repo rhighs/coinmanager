@@ -137,6 +137,18 @@ namespace CoinManager.Models
             public double CryptoQuantity{get;set;}
             
         }
+
+        public class GuiWallet
+        {
+            private int userId;
+            private string cryptoId;
+            private double quantity;
+
+            public int UserId {get;set;}
+            public string CryptoId {get;set;}
+            public double Quantity {get;set;}
+            
+        }
     }
 
     namespace CG

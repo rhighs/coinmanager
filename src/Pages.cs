@@ -17,14 +17,48 @@ namespace CoinManager.GUI
     {
         private CMDbContext db;
         public string Name { get; } = "Transaction";
+        
+        private const int BUTTON_WIDTH = 50;
         private TableLayout layout = new TableLayout
                 {
                     Spacing = new Size(5, 5),
 				    Padding = new Padding(10, 10, 10, 10), 
 				
                 };
+        
         public Transaction()
         {
+            var dropDown = new DropDown{ Items = {
+                "All", "Running"
+            }};
+            var buttonFilter = new Button
+                {
+                    Text = "Apply",
+                    /*Command = new Command((sender, e) =>
+                            {
+                                db = CMDbContext.Instance;
+                                var trans = db.Transaction.Select(t => new GuiTransaction{
+                                    Id = t.Id,
+                                    SourceId = t.SourceId,
+                                    DestinationId = t.DestinationId,
+                                    CryptoId = t.CryptoId,
+                                    //StartDate = t.StartDate,
+                                    //FinishDate = t.FinishDate,
+                                    CryptoQuantity = t.CryptoQuantity,
+                                    State = t.State
+                                }).ToList();
+                                FillLayout(trans);
+                                Console.WriteLine("click");
+                                Content = layout;
+                            }),*/
+                    Width = BUTTON_WIDTH
+                };
+            var filterRow = new TableRow(
+                new TableCell(new Label() { Text = "Filter"}, true),
+                        new TableCell(dropDown, true),
+                        new TableCell(buttonFilter, true)
+                        
+            );
             var row = new TableRow(
                 new TableCell(new Label() { Text = "Id"}, true),
                         new TableCell(new Label() { Text = "DestinationId"}, true),
@@ -33,6 +67,7 @@ namespace CoinManager.GUI
                         new TableCell(new Label() { Text = "State"}, true)
                         
                         );
+            layout.Rows.Add(filterRow);
             layout.Rows.Add(row);
             db = CMDbContext.Instance;
             var trans = db.Transaction.Select(t => new GuiTransaction{
@@ -70,6 +105,14 @@ namespace CoinManager.GUI
     public class Wallet : Panel
     {
         public string Name { get; } = "Wallet";
+        private CMDbContext db;
+        private TableLayout layout = new TableLayout
+                {
+                    Spacing = new Size(5, 5),
+				    Padding = new Padding(10, 10, 10, 10), 
+				
+                };
+        private const int BUTTON_WIDTH = 50;
 
         public Wallet()
         {
@@ -81,26 +124,51 @@ namespace CoinManager.GUI
 				    Padding = new Padding(10, 10, 10, 10), 
 				
                 };
-                var titles =
+                var title =
 				(
 					new TableRow(
-						new TableCell(new Label { Text = "First half" }, true), 
-						new TableCell(new Label { Text = "Second half" }, true)
+						new TableCell(new Label { Text = "Saved Crypto" }, true)
 					)
                 );
-                var items = 
-                (
-                    new TableRow(
-                        new ListBox(),
-			            new ListBox()
-		            )
+                
+                db = CMDbContext.Instance;
+                    var wallet = db.Wallet.Select(c => new GuiWallet{
+                        CryptoId = c.CryptoId,
+                        Quantity = c.Quantity
+                        
+                    }).ToList();
+                    wallet.ForEach(w => 
+                        {
+                            var cryptoList = new TableRow(
+                                new TableCell(new Label() { Text = w.CryptoId}, true),
+                                new TableCell(new Label() { Text = w.Quantity.ToString()}, true)
+                            );
+                            layout.Rows.Add(cryptoList);
+                            
+                        }
+                    );
+                var cryptoList = new TableRow(
+                    new Scrollable(){
+                        Content = layout
+                    }
                 );
-                t.Rows.Add(titles);
-                t.Rows.Add(items);
+                var buttonRow = new TableRow(
+                        TableLayout.AutoSized(new Button(){Text = "Send", Width = BUTTON_WIDTH}),
+                        TableLayout.AutoSized(new Button(){Text = "Refresh", Width = BUTTON_WIDTH}) 
+                    );
+                var tenTrans = new TableRow(
+                        new ListBox()
+                    );
+                t.Rows.Add(title);
+                t.Rows.Add(cryptoList);
+                t.Rows.Add(buttonRow);
+                t.Rows.Add(tenTrans);
                 return t;
             };
             Content = createLayout();
         }
+
+        public void FillWallet(){}
     }
 
     public class CoinsList : Scrollable
