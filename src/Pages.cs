@@ -1,9 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.IO;
 
 using Eto.Forms;
 using Eto.Drawing;
@@ -110,7 +107,7 @@ namespace CoinManager.GUI
         private CMDbContext db;
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
-        private readonly Size DIALOG_SIZE = new Size(600, 400);
+        private readonly Size DIALOG_SIZE = new Size(600, 300);
 
         public CoinsList()
         {
@@ -166,53 +163,4 @@ namespace CoinManager.GUI
         }
     }
 
-    public class CryptoDialog : Panel
-    {
-        private CMDbContext db;
-
-        public CryptoDialog(string cryptoId)
-        {
-            db = CMDbContext.Instance;
-
-            var c = new DynamicLayout();
-            var image = Task.Run(async () => 
-            {
-                return await GetImage(cryptoId);
-            }).Result;
-
-            c.BeginVertical();
-            c.BeginHorizontal();
-            c.Add(image);
-            c.Add(new Label{ Text = db.Crypto.Find(cryptoId).Name });
-            c.Add(new Label{ Text = $"({db.Crypto.Find(cryptoId).Symbol.ToUpper()})" });
-            c.EndHorizontal();
-            c.EndVertical();
-
-            c.BeginVertical();
-            c.BeginHorizontal();
-            c.Add(new TextArea());
-            c.Add(new TextArea());
-            c.EndHorizontal();
-            c.EndVertical();
-
-            Content = c;
-        }
-
-        private async Task<ImageView> GetImage(string cryptoId)
-        {
-            var http = new HttpClient();
-            var url = db.Crypto.Find(cryptoId).ImageUrl;
-            var res = await http.GetAsync(url);
-            var stream = await res.Content.ReadAsStreamAsync();
-            var memStream = new MemoryStream();
-            await stream.CopyToAsync(memStream);
-            memStream.Position = 0;
-
-            return new ImageView
-            {
-                Image = new Bitmap(memStream),
-                Size = new Size(100, 100)
-            };
-        }
-    }
 }

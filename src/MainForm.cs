@@ -18,6 +18,7 @@ namespace CoinManager.GUI
             var tabs = new TabDrawer();
             var listTest = new TabDrawer();
             var coinsList = new CoinsList();
+            Resizable = false;
 
             tabs.AddPage(coinsList.Name, coinsList);
             tabs.AddPage(wallet.Name, wallet);
@@ -36,6 +37,7 @@ namespace CoinManager.GUI
                         };
                         if(verifyLogin())
                         {
+                            Resizable = true;
                             Content = tabs;
                         }
                         loginPage.ErroreMessage.Text = "Hai sbagliato username o password, riprova.";
@@ -57,9 +59,9 @@ namespace CoinManager.GUI
         private StackLayout layout;
 
         static private Size inputSize = new Size(400, 40);
-        //static private string imagePath = "./res/logo.png";
+        static private string imagePath = "./res/logo.png";
         //bro scusa ma a me va solo con il percorso assoluto
-        static private string imagePath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
+        //static private string imagePath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
         static private Label usernameLabel = new Label(){ Text = "Nome utente" };
         static private Label passwordLabel = new Label(){ Text = "Password" };
 
@@ -121,6 +123,7 @@ namespace CoinManager.GUI
     {
         public TabDrawer()
         {
+            Size = new Size(800, 600);
         }
 
         public void AddPage(string pageTitle, Control item)
