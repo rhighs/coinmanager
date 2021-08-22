@@ -75,10 +75,17 @@ namespace CoinManager.GUI
 
     public class BuySellDialog : Panel
     {
+        private enum MarketAction {
+            BUY, SELL
+        }
+
         private Crypto _crypto;
         private CMDbContext db;
         private Button confirmButton;
         private DropDown changeAction;
+        private TextBox cryptoQty1;
+        private TextBox cryptoQty2;
+        private bool buySelected;
 
         private readonly Size TABLE_SPACING = new Size(20, 20);
         private readonly Padding TABLE_PADDING = new Padding(20);
@@ -87,13 +94,14 @@ namespace CoinManager.GUI
         {
             _crypto = crypto;
 
+            var inputsQty = CreateInputs();
             var cryptoName1 = new Label { Text = "Dollari" };
             var cryptoName2 = new Label { Text = _crypto.Name };
-            var cryptoQty1 = new TextBox { PlaceholderText = "USD" };
-            var cryptoQty2 = new TextBox { PlaceholderText = _crypto.Symbol.ToUpper() };
-
             confirmButton = CreateButton();
             changeAction = CreateDropDown();
+
+            cryptoQty1 = inputsQty.Item1;
+            cryptoQty2 = inputsQty.Item2;
 
             var labels = new TableRow 
             {
@@ -121,6 +129,31 @@ namespace CoinManager.GUI
             };
 
             Content = CreateTable(labels, inputs, actions);
+        }
+
+        private Tuple<TextBox, TextBox> CreateInputs()
+        {
+            var c1 = new TextBox { PlaceholderText = "USDT" };
+            var c2 = new TextBox { PlaceholderText = _crypto.Symbol.ToUpper() };
+
+            System.EventHandler<System.EventArgs> cmdCheckValue = (sender, e) => 
+            {
+                double qty;
+                var t = sender as TextBox;
+                if (!t.Enabled) return;
+                var ok = double.TryParse(t.Text, out qty);
+                if(!ok) t.Text = "";
+                confirmButton.Enabled = ok;
+                if(t == c1)
+                    c2.Text = (qty / _crypto.CurrentPrice).ToString();
+                else
+                    c1.Text = (qty * _crypto.CurrentPrice).ToString();
+            };
+
+            c2.Enabled = false;
+            c1.TextChanged += cmdCheckValue;
+            c2.TextChanged += cmdCheckValue;
+            return new Tuple<TextBox, TextBox>(c1, c2);
         }
 
         private TableLayout CreateTable(params TableRow[] rows)
@@ -152,20 +185,29 @@ namespace CoinManager.GUI
                     new ListItem { Text = "Vendi" }
                 }
             };
-            var buyCommand = new Command((sender, e) =>
+            var cmdConfirm = new Command((sender, e) =>
             {
-                Console.WriteLine("Compra");
+                if(buySelected)
+                {
+                    Console.WriteLine($"Buying {cryptoQty2.Text} with {cryptoQty1.Text}");
+                }
+                else
+                {
+                    Console.WriteLine($"Selling {cryptoQty2.Text} for {cryptoQty1.Text}");
+                }
             });
-            var sellCommand = new Command((sender, e) =>
-            {
-                Console.WriteLine("Vendi");
-            });
-            dropDown.SelectedIndex = 0;
-            confirmButton.Command = buyCommand; //buy set as default
+
+            dropDown.SelectedIndex = (int)MarketAction.BUY;
+            confirmButton.Command = cmdConfirm; //buy set as default
+            buySelected = dropDown.SelectedIndex == (int)MarketAction.BUY;
+
             dropDown.SelectedIndexChanged += (sender, e) => 
             {
-                confirmButton.Command = dropDown.SelectedIndex == 0 
-                    ? buyCommand : sellCommand;
+                var table = this.Content as TableLayout;
+                buySelected = dropDown.SelectedIndex == (int)MarketAction.BUY;
+                confirmButton.Command = cmdConfirm;
+                cryptoQty1.Enabled = buySelected;
+                cryptoQty2.Enabled = !buySelected;
             };
             return dropDown;
         }
