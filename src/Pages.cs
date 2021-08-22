@@ -28,11 +28,11 @@ namespace CoinManager.GUI
                         new TableCell(new Label() { Text = "CryptoId"}, true),
                         new TableCell(new Label() { Text = "CryptoQuantity"}, true),
                         new TableCell(new Label() { Text = "State"}, true)
-                        
                         );
             layout.Rows.Add(row);
             db = CMDbContext.Instance;
-            var trans = db.Transaction.Select(t => new GuiTransaction{
+            var trans = db.Transaction.Select(t => new GuiTransaction
+                {
                     Id = t.Id,
                     SourceId = t.SourceId,
                     DestinationId = t.DestinationId,
@@ -52,11 +52,9 @@ namespace CoinManager.GUI
             {
                var row = new TableRow(
                         new TableCell(new Label() { Text = t.Id.ToString()}, true),
-                        new TableCell(new Label() { Text = t.DestinationId.ToString() }, true),
                         new TableCell(new Label() { Text = t.CryptoId.ToString()}, true),
                         new TableCell(new Label() { Text = t.CryptoQuantity.ToString()}, true),
                         new TableCell(new Label() { Text = t.State.ToString()}, true)
-                        
                         );
                 layout.Rows.Add(row);
             });
@@ -142,7 +140,7 @@ namespace CoinManager.GUI
                                 {
                                     Size = DIALOG_SIZE
                                 };
-                                var dialog = new Dialog()
+                                var dialog = new Dialog
                                 {
                                     Size = content.Size,
                                     Content = content
