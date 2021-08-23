@@ -128,4 +128,21 @@ namespace CoinManager.EF
         public double Advance           { get; set; }
         public DateTime ExpireDate      { get; set; }
     }
+
+    public class FriendRequest
+    {
+        [Key]
+        public int SenderId         { get; set; }
+        [Key]
+        public int ReceiverId       { get; set; }
+        public DateTime SentDate    { get; set; }
+    }
+
+    public class Friendship
+    {
+        [Key]
+        public int UserId   { get; set; }
+        [Key]
+        public int FriendId { get; set; }
+    }
 }
