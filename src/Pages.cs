@@ -17,8 +17,7 @@ namespace CoinManager.GUI
         private TableLayout layout = new TableLayout
                 {
                     Spacing = new Size(5, 5),
-				    Padding = new Padding(10, 10, 10, 10), 
-				
+				    Padding = new Padding(10, 10, 10, 10)
                 };
         public Transaction()
         {
@@ -95,6 +94,46 @@ namespace CoinManager.GUI
                 return t;
             };
             Content = createLayout();
+        }
+    }
+
+    public class Profile : Panel
+    {
+        public string Name { get; private set; } = "Profile";
+        public Profile()
+        {
+            var table = new TableLayout();
+            var leftStack = new TableCell(CreateInfoStack(), true);
+            var friends = new TableCell(CreateFriendsList(), true);
+            table.Rows.Add(new TableRow { Cells = { leftStack, friends } });
+            Padding = new Padding(20);
+            Content = table;
+        }
+
+        private StackLayout CreateInfoStack()
+        {
+            var stack = new StackLayout();
+            stack.Items.Add(new Label { Text = "Username" });
+            stack.Items.Add(new Label { Text = "Email" });
+            stack.Items.Add(new Label { Text = "Other data..." });
+            return stack;
+        }
+
+        private GroupBox CreateFriendsList()
+        {
+            var group = new GroupBox();
+            var scroll = new Scrollable();
+            var friends = new TableLayout();
+            scroll.Padding = new Padding(10);
+            var button = new TableCell(new Button { Text = "Remove" }, true);
+            var cell = new TableCell(new Label { Text = "friend data" }, true);
+            var cell1 = new TableCell(new Label { Text = "friend data" }, true);
+            friends.Rows.Add(new TableRow { Cells = { cell, cell1, button } });
+            scroll.Content = friends;
+            group.Text = "Amici";
+            group.Content = scroll;
+            group.Padding = new Padding(20);
+            return group;
         }
     }
 

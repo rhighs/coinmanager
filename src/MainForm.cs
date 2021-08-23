@@ -20,9 +20,12 @@ namespace CoinManager.GUI
             var coinsList = new CoinsList();
             Resizable = false;
 
+            var profile = new Profile();
+
             tabs.AddPage(coinsList.Name, coinsList);
             tabs.AddPage(wallet.Name, wallet);
             tabs.AddPage(transaction.Name, transaction);
+            tabs.AddPage(profile.Name, profile);
             
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
