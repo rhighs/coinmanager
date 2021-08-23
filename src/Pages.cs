@@ -17,7 +17,7 @@ namespace CoinManager.GUI
         private TableLayout layout = new TableLayout
                 {
                     Spacing = new Size(5, 5),
-				    Padding = new Padding(10, 10, 10, 10)
+                    Padding = new Padding(10, 10, 10, 10)
                 };
         public Transaction()
         {
@@ -72,22 +72,22 @@ namespace CoinManager.GUI
                 var t = new TableLayout
                 {
                     Spacing = new Size(5, 5),
-				    Padding = new Padding(10, 10, 10, 10), 
-				
+                    Padding = new Padding(10, 10, 10, 10), 
+                
                 };
                 var titles =
-				(
-					new TableRow(
-						new TableCell(new Label { Text = "First half" }, true), 
-						new TableCell(new Label { Text = "Second half" }, true)
-					)
+                (
+                    new TableRow(
+                        new TableCell(new Label { Text = "First half" }, true), 
+                        new TableCell(new Label { Text = "Second half" }, true)
+                    )
                 );
                 var items = 
                 (
                     new TableRow(
                         new ListBox(),
-			            new ListBox()
-		            )
+                        new ListBox()
+                    )
                 );
                 t.Rows.Add(titles);
                 t.Rows.Add(items);
