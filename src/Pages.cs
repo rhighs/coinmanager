@@ -1,9 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.IO;
 
 using Eto.Forms;
 using Eto.Drawing;
@@ -22,8 +19,7 @@ namespace CoinManager.GUI
         private TableLayout layout = new TableLayout
                 {
                     Spacing = new Size(5, 5),
-				    Padding = new Padding(10, 10, 10, 10), 
-				
+                    Padding = new Padding(10, 10, 10, 10)
                 };
         
         public Transaction()
@@ -65,12 +61,12 @@ namespace CoinManager.GUI
                         new TableCell(new Label() { Text = "CryptoId"}, true),
                         new TableCell(new Label() { Text = "CryptoQuantity"}, true),
                         new TableCell(new Label() { Text = "State"}, true)
-                        
                         );
             layout.Rows.Add(filterRow);
             layout.Rows.Add(row);
             db = CMDbContext.Instance;
-            var trans = db.Transaction.Select(t => new GuiTransaction{
+            var trans = db.Transaction.Select(t => new GuiTransaction
+                {
                     Id = t.Id,
                     SourceId = t.SourceId,
                     DestinationId = t.DestinationId,
@@ -90,11 +86,9 @@ namespace CoinManager.GUI
             {
                var row = new TableRow(
                         new TableCell(new Label() { Text = t.Id.ToString()}, true),
-                        new TableCell(new Label() { Text = t.DestinationId.ToString() }, true),
                         new TableCell(new Label() { Text = t.CryptoId.ToString()}, true),
                         new TableCell(new Label() { Text = t.CryptoQuantity.ToString()}, true),
                         new TableCell(new Label() { Text = t.State.ToString()}, true)
-                        
                         );
                 layout.Rows.Add(row);
             });
@@ -121,8 +115,8 @@ namespace CoinManager.GUI
                 var t = new TableLayout
                 {
                     Spacing = new Size(5, 5),
-				    Padding = new Padding(10, 10, 10, 10), 
-				
+                    Padding = new Padding(10, 10, 10, 10), 
+                
                 };
                 var title =
 				(
@@ -150,8 +144,7 @@ namespace CoinManager.GUI
                 var cryptoList = new TableRow(
                     new Scrollable(){
                         Content = layout
-                    }
-                );
+                    });
                 var buttonRow = new TableRow(
                         TableLayout.AutoSized(new Button(){Text = "Send", Width = BUTTON_WIDTH}),
                         TableLayout.AutoSized(new Button(){Text = "Refresh", Width = BUTTON_WIDTH}) 
@@ -171,6 +164,46 @@ namespace CoinManager.GUI
         public void FillWallet(){}
     }
 
+    public class Profile : Panel
+    {
+        public string Name { get; private set; } = "Profile";
+        public Profile()
+        {
+            var table = new TableLayout();
+            var leftStack = new TableCell(CreateInfoStack(), true);
+            var friends = new TableCell(CreateFriendsList(), true);
+            table.Rows.Add(new TableRow { Cells = { leftStack, friends } });
+            Padding = new Padding(20);
+            Content = table;
+        }
+
+        private StackLayout CreateInfoStack()
+        {
+            var stack = new StackLayout();
+            stack.Items.Add(new Label { Text = "Username" });
+            stack.Items.Add(new Label { Text = "Email" });
+            stack.Items.Add(new Label { Text = "Other data..." });
+            return stack;
+        }
+
+        private GroupBox CreateFriendsList()
+        {
+            var group = new GroupBox();
+            var scroll = new Scrollable();
+            var friends = new TableLayout();
+            scroll.Padding = new Padding(10);
+            var button = new TableCell(new Button { Text = "Remove" }, true);
+            var cell = new TableCell(new Label { Text = "friend data" }, true);
+            var cell1 = new TableCell(new Label { Text = "friend data" }, true);
+            friends.Rows.Add(new TableRow { Cells = { cell, cell1, button } });
+            scroll.Content = friends;
+            group.Text = "Amici";
+            group.Content = scroll;
+            group.Padding = new Padding(20);
+            return group;
+        }
+    }
+
     public class CoinsList : Scrollable
     {
         public string Name { get; } = "Coins list";
@@ -178,7 +211,7 @@ namespace CoinManager.GUI
         private CMDbContext db;
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
-        private readonly Size DIALOG_SIZE = new Size(600, 400);
+        private readonly Size DIALOG_SIZE = new Size(600, 300);
 
         public CoinsList()
         {
@@ -213,7 +246,7 @@ namespace CoinManager.GUI
                                 {
                                     Size = DIALOG_SIZE
                                 };
-                                var dialog = new Dialog()
+                                var dialog = new Dialog
                                 {
                                     Size = content.Size,
                                     Content = content
@@ -234,53 +267,4 @@ namespace CoinManager.GUI
         }
     }
 
-    public class CryptoDialog : Panel
-    {
-        private CMDbContext db;
-
-        public CryptoDialog(string cryptoId)
-        {
-            db = CMDbContext.Instance;
-
-            var c = new DynamicLayout();
-            var image = Task.Run(async () => 
-            {
-                return await GetImage(cryptoId);
-            }).Result;
-
-            c.BeginVertical();
-            c.BeginHorizontal();
-            c.Add(image);
-            c.Add(new Label{ Text = db.Crypto.Find(cryptoId).Name });
-            c.Add(new Label{ Text = $"({db.Crypto.Find(cryptoId).Symbol.ToUpper()})" });
-            c.EndHorizontal();
-            c.EndVertical();
-
-            c.BeginVertical();
-            c.BeginHorizontal();
-            c.Add(new TextArea());
-            c.Add(new TextArea());
-            c.EndHorizontal();
-            c.EndVertical();
-
-            Content = c;
-        }
-
-        private async Task<ImageView> GetImage(string cryptoId)
-        {
-            var http = new HttpClient();
-            var url = db.Crypto.Find(cryptoId).ImageUrl;
-            var res = await http.GetAsync(url);
-            var stream = await res.Content.ReadAsStreamAsync();
-            var memStream = new MemoryStream();
-            await stream.CopyToAsync(memStream);
-            memStream.Position = 0;
-
-            return new ImageView
-            {
-                Image = new Bitmap(memStream),
-                Size = new Size(100, 100)
-            };
-        }
-    }
 }

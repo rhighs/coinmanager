@@ -12,10 +12,7 @@ public class Startup
     {
         const string TITLE = "CoinManager Desktop";
         var db = new CMDbContext("localhost", "coinmanager", "rob", "rob");
-        var pop = new Populator();
-        //pop.GenerateCryptos(200).Wait();
         new Eto.Forms.Application().Run(new CoinsForm(TITLE));
-        
     }
 }
 

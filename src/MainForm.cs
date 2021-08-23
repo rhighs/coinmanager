@@ -18,10 +18,14 @@ namespace CoinManager.GUI
             var tabs = new TabDrawer();
             var listTest = new TabDrawer();
             var coinsList = new CoinsList();
+            Resizable = false;
+
+            var profile = new Profile();
 
             tabs.AddPage(coinsList.Name, coinsList);
             tabs.AddPage(wallet.Name, wallet);
             tabs.AddPage(transaction.Name, transaction);
+            tabs.AddPage(profile.Name, profile);
             
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
@@ -36,6 +40,7 @@ namespace CoinManager.GUI
                         };
                         if(verifyLogin())
                         {
+                            Resizable = true;
                             Content = tabs;
                         }
                         loginPage.ErroreMessage.Text = "Hai sbagliato username o password, riprova.";
@@ -121,6 +126,7 @@ namespace CoinManager.GUI
     {
         public TabDrawer()
         {
+            Size = new Size(800, 600);
         }
 
         public void AddPage(string pageTitle, Control item)
