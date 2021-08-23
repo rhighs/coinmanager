@@ -105,8 +105,8 @@ namespace CoinManager.GUI
         private TableLayout layout = new TableLayout
                 {
                     Spacing = new Size(5, 5),
-				    Padding = new Padding(10, 10, 10, 10), 
-				
+                    Padding = new Padding(10, 10, 10, 10), 
+                
                 };
         private const int BUTTON_WIDTH = 50;
 
@@ -121,10 +121,10 @@ namespace CoinManager.GUI
                 
                 };
                 var title =
-				(
-					new TableRow(
-						new TableCell(new Label { Text = "Saved Crypto" }, true)
-					)
+                (
+                    new TableRow(
+                        new TableCell(new Label { Text = "Saved Crypto" }, true)
+                    )
                 );
                 
                 db = CMDbContext.Instance;
