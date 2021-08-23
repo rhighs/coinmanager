@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using Eto.Forms;
 using Eto.Drawing;
@@ -16,82 +18,82 @@ namespace CoinManager.GUI
         public string Name { get; } = "Transaction";
         
         private const int BUTTON_WIDTH = 50;
-        private TableLayout layout = new TableLayout
-                {
-                    Spacing = new Size(5, 5),
-                    Padding = new Padding(10, 10, 10, 10)
-                };
         
         public Transaction()
         {
+
+            var t = new GuiTransaction
+            {
+                Id = 12,
+                   SourceId = 12,
+                   DestinationId = 12,
+                   CryptoId = "sku",
+                   CryptoQuantity = 1231,
+                   State = 1
+            };
+
+            var collection = new ObservableCollection<GuiTransaction>() ;
+            var grid = new GridView { DataStore = collection };
+            var filtersTable = new TableLayout
+            {
+                Padding = new Padding(20)
+            };
+
+            var cmdAdd = new Command((sender, e) =>
+                             {
+                                var t = new GuiTransaction
+                                    {
+                                        Id = 12,
+                                        SourceId = 12,
+                                        DestinationId = 12,
+                                        CryptoId = "sku",
+                                        CryptoQuantity = 1231,
+                                        State = 1
+                                     };
+                                 collection.Add(t);
+                            });
+
+            var buttonFilter = new Button
+            {
+                Text = "Apply",
+                Command = cmdAdd,
+                Width = BUTTON_WIDTH
+            };
             var dropDown = new DropDown{ Items = {
                 "All", "Running"
             }};
-            var buttonFilter = new Button
-                {
-                    Text = "Apply",
-                    /*Command = new Command((sender, e) =>
-                            {
-                                db = CMDbContext.Instance;
-                                var trans = db.Transaction.Select(t => new GuiTransaction{
-                                    Id = t.Id,
-                                    SourceId = t.SourceId,
-                                    DestinationId = t.DestinationId,
-                                    CryptoId = t.CryptoId,
-                                    //StartDate = t.StartDate,
-                                    //FinishDate = t.FinishDate,
-                                    CryptoQuantity = t.CryptoQuantity,
-                                    State = t.State
-                                }).ToList();
-                                FillLayout(trans);
-                                Console.WriteLine("click");
-                                Content = layout;
-                            }),*/
-                    Width = BUTTON_WIDTH
-                };
             var filterRow = new TableRow(
-                new TableCell(new Label() { Text = "Filter"}, true),
-                        new TableCell(dropDown, true),
-                        new TableCell(buttonFilter, true)
-                        
-            );
-            var row = new TableRow(
-                new TableCell(new Label() { Text = "Id"}, true),
-                        new TableCell(new Label() { Text = "DestinationId"}, true),
-                        new TableCell(new Label() { Text = "CryptoId"}, true),
-                        new TableCell(new Label() { Text = "CryptoQuantity"}, true),
-                        new TableCell(new Label() { Text = "State"}, true)
-                        );
-            layout.Rows.Add(filterRow);
-            layout.Rows.Add(row);
-            db = CMDbContext.Instance;
-            var trans = db.Transaction.Select(t => new GuiTransaction
-                {
-                    Id = t.Id,
-                    SourceId = t.SourceId,
-                    DestinationId = t.DestinationId,
-                    CryptoId = t.CryptoId,
-                    //StartDate = t.StartDate,
-                    //FinishDate = t.FinishDate,
-                    CryptoQuantity = t.CryptoQuantity,
-                    State = t.State
-                }).ToList();
-            FillLayout(trans);
-            Content = layout;
-            
+                    new TableCell(new Label() { Text = "Filter"}, true),
+                    new TableCell(dropDown, true),
+                    new TableCell(buttonFilter, true)
+                    );
+            filtersTable.Rows.Add(filterRow);
+
+            foreach(var c in CreateColums())
+                grid.Columns.Add(c);
+
+            var all = new TableLayout();
+            all.Rows.Add(filtersTable);
+            all.Rows.Add(grid);
+            Content = all;
         }
-       public void FillLayout(List<GuiTransaction> trans)
+
+        private List<GridColumn> CreateColums()
         {
-            trans.ForEach(t =>
+            var list = new List<GridColumn>();
+            foreach(var prop in typeof(GuiTransaction).GetProperties())
             {
-               var row = new TableRow(
-                        new TableCell(new Label() { Text = t.Id.ToString()}, true),
-                        new TableCell(new Label() { Text = t.CryptoId.ToString()}, true),
-                        new TableCell(new Label() { Text = t.CryptoQuantity.ToString()}, true),
-                        new TableCell(new Label() { Text = t.State.ToString()}, true)
-                        );
-                layout.Rows.Add(row);
-            });
+                list.Add(new GridColumn 
+                        { 
+                            HeaderText = prop.Name.ToString(),
+                            DataCell = new TextBoxCell 
+                            { 
+                                Binding = Binding.Property<GuiTransaction, string>
+                                (p => prop.GetValue(p).ToString()),
+                            },
+                        });
+            }
+            return list;
         }
     }
     
@@ -145,16 +147,16 @@ namespace CoinManager.GUI
                     new Scrollable(){
                         Content = layout
                     });
-                var buttonRow = new TableRow(
-                        TableLayout.AutoSized(new Button(){Text = "Send", Width = BUTTON_WIDTH}),
-                        TableLayout.AutoSized(new Button(){Text = "Refresh", Width = BUTTON_WIDTH}) 
-                    );
+
+                var dyn = new DynamicLayout();
+                dyn.AddColumn(new Button(){Text = "Send", Width = BUTTON_WIDTH});
+                dyn.AddColumn(new Button(){Text = "Refresh", Width = BUTTON_WIDTH});
                 var tenTrans = new TableRow(
                         new ListBox()
                     );
                 t.Rows.Add(title);
                 t.Rows.Add(cryptoList);
-                t.Rows.Add(buttonRow);
+                t.Rows.Add(dyn);
                 t.Rows.Add(tenTrans);
                 return t;
             };
