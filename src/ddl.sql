@@ -6,7 +6,8 @@ CREATE DOMAIN CRYPTO_IMAGE AS VARCHAR(1000) NOT NULL;
 CREATE TABLE "UserStandard" (
     "Id" Integer NOT NULL PRIMARY KEY,
     "Username" VARCHAR(30) NOT NULL,
-    "Password" CHAR(20) NOT NULL
+    "Password" CHAR(20) NOT NULL,
+    "OnlineStatus" BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE "UserMiner" (
@@ -82,10 +83,25 @@ CREATE TABLE "Loan" (
     FOREIGN KEY ("AdvanceCryptoId") REFERENCES "Crypto"("Id")
 );
 
-CREATE TABLE "MinerSessions" (
+CREATE TABLE "MinerSession" (
     "Id" INTEGER NOT NULL PRIMARY KEY,
     "MinerId" INTEGER NOT NULL,
     "TransactionId" INTEGER not NULL,
     FOREIGN KEY ("MinerId") REFERENCES "UserMiner"("Id"),
     FOREIGN KEY ("TransactionId") REFERENCES "Transaction"("Id")
+);
+
+CREATE TABLE "Friendship" (
+    "UserId" INTEGER NOT NULL PRIMARY KEY,
+    "FriendId" INTEGER NOT NULL PRIMARY KEY,
+    FOREIGN KEY ("UserId") REFERENCES "UserStandard"("Id"),
+    FOREIGN KEY ("FriendId") REFERENCES "UserStandard"("Id"),
+);
+
+CREATE TABLE "FriendRequest" (
+    "SenderId" INTEGER NOT NULL PRIMARY KEY,
+    "ReceiverId" INTEGER NOT NULL PRIMARY KEY,
+    FOREIGN KEY ("SenderId") REFERENCES "UserStandard"("Id"),
+    FOREIGN KEY ("ReceiverId") REFERENCES "UserStandard"("Id"),
+    CONSTRAINT ValidReq CHECK ("SenderId" != "ReceiverId")
 );
