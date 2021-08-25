@@ -14,6 +14,12 @@ namespace CoinManager.GUI
 {
     public class Transaction : Scrollable
     {
+        //Da sistemare, dubbi sull'utilità, forse più semplice fare gli stati 0,1,2
+        enum DropItems
+        {
+            All = 1,
+            Running = 2
+        }
         private CMDbContext db;
         public string Name { get; } = "Transaction";
         
@@ -21,36 +27,33 @@ namespace CoinManager.GUI
         
         public Transaction()
         {
-
-            var t = new GuiTransaction
-            {
-                Id = 12,
-                   SourceId = 12,
-                   DestinationId = 12,
-                   CryptoId = "sku",
-                   CryptoQuantity = 1231,
-                   State = 1
-            };
-
-            var collection = new ObservableCollection<GuiTransaction>() ;
+            var collection = new ObservableCollection<GuiTransaction>();
             var grid = new GridView { DataStore = collection };
             var filtersTable = new TableLayout
             {
                 Padding = new Padding(20)
             };
-
+            var dropDown = new DropDown{ Items = {
+                DropItems.All.ToString(), DropItems.Running.ToString()
+            }};
             var cmdAdd = new Command((sender, e) =>
                              {
-                                var t = new GuiTransaction
-                                    {
-                                        Id = 12,
-                                        SourceId = 12,
-                                        DestinationId = 12,
-                                        CryptoId = "sku",
-                                        CryptoQuantity = 1231,
-                                        State = 1
-                                     };
-                                 collection.Add(t);
+                                collection.Clear();
+                                db = CMDbContext.Instance;
+                                var trans = db.Transaction.Select(t => new GuiTransaction{
+                                    Id = t.Id,
+                                    SourceId = t.SourceId,
+                                    DestinationId = t.DestinationId,
+                                    CryptoId = t.CryptoId,
+                                    StartDate = t.StartDate,
+                                    FinishDate = t.FinishDate,
+                                    CryptoQuantity = t.CryptoQuantity,
+                                    State = t.State
+                                }).ToList();
+                                trans.ForEach(t => {
+                                    if(dropDown.SelectedIndex == t.State) 
+                                        collection.Add(t);
+                                });
                             });
 
             var buttonFilter = new Button
@@ -59,9 +62,7 @@ namespace CoinManager.GUI
                 Command = cmdAdd,
                 Width = BUTTON_WIDTH
             };
-            var dropDown = new DropDown{ Items = {
-                "All", "Running"
-            }};
+            
             var filterRow = new TableRow(
                     new TableCell(new Label() { Text = "Filter"}, true),
                     new TableCell(dropDown, true),
