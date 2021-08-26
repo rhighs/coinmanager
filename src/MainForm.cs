@@ -6,6 +6,7 @@ using Eto.Forms;
 using Eto.Drawing;
 
 using CoinManager.EF;
+using CoinManager.FS;
 
 namespace CoinManager.GUI
 {
@@ -20,7 +21,7 @@ namespace CoinManager.GUI
             var coinsList = new CoinsList();
             Resizable = false;
 
-            var profile = new Profile();
+            var profile = new Profile(null, null);
 
             tabs.AddPage(coinsList.Name, coinsList);
             tabs.AddPage(wallet.Name, wallet);
@@ -62,9 +63,9 @@ namespace CoinManager.GUI
         private StackLayout layout;
 
         static private Size inputSize = new Size(400, 40);
-        //static private string imagePath = "./res/logo.png";
+        static private string imagePath = CMImages.LogoPath;
         //bro scusa ma a me va solo con il percorso assoluto
-        static private string imagePath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
+        //static private string imagePath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
         static private Label usernameLabel = new Label(){ Text = "Nome utente" };
         static private Label passwordLabel = new Label(){ Text = "Password" };
 

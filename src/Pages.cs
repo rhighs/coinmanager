@@ -15,11 +15,13 @@ namespace CoinManager.GUI
     public class Transaction : Scrollable
     {
         //Da sistemare, dubbi sull'utilità, forse più semplice fare gli stati 0,1,2
+        //No magic numbers
         enum DropItems
         {
             All = 1,
             Running = 2
         }
+
         private CMDbContext db;
         public string Name { get; } = "Transaction";
         
@@ -98,7 +100,6 @@ namespace CoinManager.GUI
         }
     }
     
-    
     public class Wallet : Panel
     {
         public string Name { get; } = "Wallet";
@@ -169,15 +170,32 @@ namespace CoinManager.GUI
 
     public class Profile : Panel
     {
-        public string Name { get; private set; } = "Profile";
-        public Profile()
+        public string Name { get; } = "Profile";
+        private List<UserStandard> _friends;
+        private List<RunningTransaction> _runningTransactions;
+        static private Padding CONTENTS_PADDING = new Padding(10);
+        static private Padding PANEL_PADDING = new Padding(10);
+
+        public Profile(
+                List<UserStandard> friends,
+                List<RunningTransaction> runningTransactions,
+                bool isMiner = false
+                )
         {
-            var table = new TableLayout();
-            var leftStack = new TableCell(CreateInfoStack(), true);
-            var friends = new TableCell(CreateFriendsList(), true);
-            table.Rows.Add(new TableRow { Cells = { leftStack, friends } });
-            Padding = new Padding(20);
-            Content = table;
+            var mainTable = new TableLayout();
+            var lists = new TableLayout();
+
+            lists.Rows.Add(new TableRow { Cells = { CreateFriendsList() }, ScaleHeight = true });
+            if(!isMiner)
+            {
+                lists.Rows.Add(new TableRow { Cells = { CreateMinerSection() }, ScaleHeight = true });
+            }
+
+            var infoCell = new TableCell(CreateInfoStack(), true);
+            var listsCell = new TableCell(lists, true);
+            mainTable.Rows.Add(new TableRow { Cells = { infoCell, listsCell } });
+            Padding = PANEL_PADDING;
+            Content = mainTable;
         }
 
         private StackLayout CreateInfoStack()
@@ -192,17 +210,43 @@ namespace CoinManager.GUI
         private GroupBox CreateFriendsList()
         {
             var group = new GroupBox();
+            var friendsTable = new TableLayout();
+            /*
+            foreach(var friend in _friends) {
+                var button = TableLayout.AutoSized(new Button { Text = "Remove" });
+                var firstName = new TableCell(new Label { Text = "friend data" }, true);
+                var username = new TableCell(new Label { Text = "friend data" }, true);
+
+                friendsTable.Rows.Add(new TableRow { Cells = { firstName, username, button }, ScaleHeight = false });
+            }
+            */
+            return CreateScrollableGroup("Amici", friendsTable);
+        }
+
+        public GroupBox CreateMinerSection()
+        {
             var scroll = new Scrollable();
-            var friends = new TableLayout();
-            scroll.Padding = new Padding(10);
-            var button = new TableCell(new Button { Text = "Remove" }, true);
-            var cell = new TableCell(new Label { Text = "friend data" }, true);
-            var cell1 = new TableCell(new Label { Text = "friend data" }, true);
-            friends.Rows.Add(new TableRow { Cells = { cell, cell1, button } });
-            scroll.Content = friends;
-            group.Text = "Amici";
+            var transactionsTable = new TableLayout();
+            /*
+            foreach (var trans in _runningTransactions)
+            {
+                var idLabel = TableLayout.AutoSized(new Label { Text = trans.TransactionId.ToString() });
+                var confirmButton = TableLayout.AutoSized(new Button { Text = "Conferma" });
+                transactionsTable.Rows.Add(new TableRow(idLabel, confirmButton));
+            }
+            */
+            return CreateScrollableGroup("Transazioni confermabili", scroll);
+        }
+
+        private GroupBox CreateScrollableGroup(string Title, Container container)
+        {
+            var group = new GroupBox();
+            var scroll = new Scrollable();
+            scroll.Content = container;
+            scroll.Padding = CONTENTS_PADDING;
+            group.Text = Title;
             group.Content = scroll;
-            group.Padding = new Padding(20);
+            group.Padding = CONTENTS_PADDING;
             return group;
         }
     }
