@@ -64,8 +64,6 @@ namespace CoinManager.GUI
 
         static private Size inputSize = new Size(400, 40);
         static private string imagePath = CMImages.LogoPath;
-        //bro scusa ma a me va solo con il percorso assoluto
-        //static private string imagePath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
         static private Label usernameLabel = new Label(){ Text = "Nome utente" };
         static private Label passwordLabel = new Label(){ Text = "Password" };
 
