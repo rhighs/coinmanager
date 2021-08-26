@@ -24,6 +24,26 @@ namespace CoinManager.ApiData
     }
 }
 
+//this is just for the development phase, going to remove it on release
+namespace CoinManager.FS
+{
+    static public class CMImages
+    {
+        static private string robPath = "/home/rob/repos/coinmanager/src/res/logo.png";
+        static private string jsonPath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
+        static public string LogoPath
+        {
+            get 
+            {
+                return System.Environment.UserName == "json" 
+                    ? jsonPath
+                    : robPath;
+            }
+        }
+    }
+}
+
+
 namespace CoinManager.Models
 {
     namespace RD
