@@ -1,13 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.IO;
 
 using Eto.Forms;
 using Eto.Drawing;
-
 using CoinManager.EF;
-
+using CoinManager.Models.GUI;
 namespace CoinManager.GUI
 {
     public class CryptoDialog : Panel
@@ -210,6 +210,68 @@ namespace CoinManager.GUI
                 cryptoQty2.Enabled = !buySelected;
             };
             return dropDown;
+        }
+    }
+    public class SendDialog: Panel
+    {
+        private CMDbContext db;
+
+        public SendDialog(List<GuiWallet> wallet)
+        {
+            db = CMDbContext.Instance;
+
+            var table = new TableLayout();
+            var stack = new StackLayout();
+            var dropDown = new DropDown();
+            wallet.ForEach( w =>
+                    {
+                        dropDown.Items.Add(new ListItem { Text = w.CryptoId });
+                    });
+            
+            var destinationRow = new TableRow
+            (
+                TableLayout.AutoSized(new Label { Text = "Destination" }),
+                TableLayout.AutoSized(new DropDown())
+            );
+            var walletRow = new TableRow
+            (
+                 TableLayout.AutoSized(new Label { Text = "Crypto to send" }),
+                 TableLayout.AutoSized(dropDown)
+            );
+            var textBox = new TextBox();
+            var quantityRow = new TableRow
+            (
+                TableLayout.AutoSized(new Label { Text = "Quantity to send" }),
+                TableLayout.AutoSized(textBox)
+                //sarebbe una bella idea
+                /*new Slider { 
+                    MaxValue = wallet.Find(dropDown.SelectedValue).Quantity,
+                    MinValue = 0,
+                    Orientation = 0
+                }*/
+            );
+            var cmdSend = new Command((sender, e) =>
+                             {
+                                if(dropDown.SelectedValue != null)
+                                    textBox.Text = "Send!";
+                            });
+            var sendRow = new TableRow
+            (
+                TableLayout.AutoSized(new Button
+                                        {
+                                            Text = "Send",
+                                            Command = cmdSend
+
+                                        })
+            );
+            table.Rows.Add(destinationRow);
+            table.Rows.Add(walletRow);
+            table.Rows.Add(quantityRow);
+            table.Rows.Add(sendRow);
+
+            table.Padding = new Padding(20, 20);
+            table.Spacing = new Size(20, 20);
+            Content = table;
         }
     }
 }

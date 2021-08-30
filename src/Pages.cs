@@ -111,6 +111,7 @@ namespace CoinManager.GUI
                 
                 };
         private const int BUTTON_WIDTH = 50;
+        private readonly Size DIALOG_SIZE = new Size(600, 300);
 
         public Wallet()
         {
@@ -125,7 +126,7 @@ namespace CoinManager.GUI
                 var title =
                 (
                     new TableRow(
-                        new TableCell(new Label { Text = "Saved Crypto" }, true)
+                        TableLayout.AutoSized(new Label { Text = "Saved Crypto" })
                     )
                 );
                 
@@ -149,12 +150,26 @@ namespace CoinManager.GUI
                     new Scrollable(){
                         Content = layout
                     });
-
                 var dyn = new DynamicLayout();
-                dyn.AddColumn(new Button(){Text = "Send", Width = BUTTON_WIDTH});
+                dyn.AddColumn(new Button(){
+                                            Text = "Send", 
+                                            Command = new Command((sender, e) =>
+                                            {
+                                                var content = new SendDialog(wallet)
+                                                {
+                                                    Size = DIALOG_SIZE
+                                                };
+                                                var dialog = new Dialog
+                                                {
+                                                    Size = content.Size,
+                                                    Content = content
+                                                };
+                                                dialog.ShowModal();
+                                            }),
+                                            Width = BUTTON_WIDTH});
                 dyn.AddColumn(new Button(){Text = "Refresh", Width = BUTTON_WIDTH});
                 var tenTrans = new TableRow(
-                        new ListBox()
+                        TableLayout.AutoSized(new ListBox())
                     );
                 t.Rows.Add(title);
                 t.Rows.Add(cryptoList);
