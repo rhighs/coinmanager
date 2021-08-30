@@ -13,6 +13,7 @@ namespace CoinManager.GUI
     public class CryptoDialog : Panel
     {
         private CMDbContext db;
+        private readonly Size BUTTON_SIZE = new Size(400, 50);
 
         public CryptoDialog(string cryptoId)
         {
@@ -27,16 +28,31 @@ namespace CoinManager.GUI
 
             var crypto = db.Crypto.Find(cryptoId);
 
-            var button = new Button
+            var buySellButton = new Button
             {
                 Text = "Compra/Vendi",
-                Size = new Size(400, 100),
+                Size = BUTTON_SIZE,
                 Command = new Command((sender, e) =>
                 {
                     var dialog = new Dialog
                     {
                         Size = new Size(Size.Width, Size.Height/2),
                         Content = new BuySellDialog(crypto)
+                    };
+                    dialog.ShowModal();
+                })
+            };
+
+            var loanButton = new Button
+            {
+                Text = "Prestito",
+                Size = BUTTON_SIZE,
+                Command = new Command((sender, e) => 
+                {
+                    var dialog = new Dialog
+                    {
+                        Size = new Size(Size.Width, Size.Height/2),
+                        Content = new LoanDialog(crypto)
                     };
                     dialog.ShowModal();
                 })
@@ -49,7 +65,8 @@ namespace CoinManager.GUI
             stack.Items.Add(new Label{ Text = $"Volume di mercato: ${crypto.TotalVolume.ToString()}" });
             stack.Items.Add(new Label{ Text = $"Qtà in circolo: {crypto.CirculatingSupply.ToString()}" });
             table.Rows.Add(new TableRow{ Cells = { image, stack } });
-            table.Rows.Add(new TableRow{ Cells = { null, button } });
+            table.Rows.Add(new TableRow{ Cells = { null, buySellButton } });
+            table.Rows.Add(new TableRow{ Cells = { null, loanButton } });
             table.Padding = new Padding(20, 20);
             table.Spacing = new Size(20, 20);
             Content = table;
@@ -70,6 +87,149 @@ namespace CoinManager.GUI
                 Image = new Bitmap(memStream),
                 Size = new Size(100, 100)
             };
+        }
+    }
+
+    public class LoanDialog : Panel
+    {
+        private Crypto _crypto;
+        private readonly Size TABLE_SPACING = new Size(20, 20);
+        private readonly Padding TABLE_PADDING = new Padding(20);
+        private TextBox cryptoQty;
+        private TextBox advance;
+        private Label expireDate;
+        private Label errorMessage;
+        private Button confirmButton;
+        private double advanceValue;
+        private double loanValue;
+        private double loanQty;
+
+        public LoanDialog(Crypto crypto)
+        {
+            _crypto = crypto;
+
+            var inputs = CreateInputs(_crypto.Symbol.ToUpper(), "USDT");
+            confirmButton = CreateButton("Conferma");
+
+            var cryptoLabels = new TableRow
+            {
+                Cells =
+                {
+                    new TableCell(new Label { Text = $"Qtà richiesta ({_crypto.Symbol.ToUpper()})" }, true),
+                    new Label { Text = "Anticipo (USDT)" },
+                }
+            };
+
+            var qtyRow = new TableRow
+            {
+                Cells = 
+                {
+                    new TableCell(inputs.Item1, true),
+                    inputs.Item2,
+                }
+            };
+
+            var infoLabels = new TableRow
+            {
+                Cells = 
+                {
+                    new TableCell(expireDate, true),
+                    null
+                }
+            };
+
+            var buttonRow = new TableRow
+            {
+                Cells = 
+                {
+                    new TableCell(errorMessage, true),
+                    new TableCell(confirmButton),
+                }
+            };
+
+            Content = CreateTable(cryptoLabels, qtyRow, infoLabels, buttonRow);
+        }
+
+        private Button CreateButton(string buttonText)
+        {
+            return new Button 
+            {
+                Text = buttonText,
+                Command = new Command((sender, e) => 
+                {
+                    if(loanValue > 0 && advanceValue >= 0)
+                        Console.WriteLine($"{loanValue}$ di {_crypto.Symbol.ToUpper()} con {advanceValue}$ e {expireDate.Text}");
+                })
+            };
+        }
+
+        private Tuple<TextBox, TextBox> CreateInputs(string qtyPh, string advPh)
+        {
+            var cryptoQty = new TextBox { PlaceholderText = qtyPh };
+            var advance = new TextBox { PlaceholderText = advPh };
+            var defaultDate = DateTime.Now.AddDays(100);
+            expireDate = new Label { Text = $"Scadenza: {defaultDate}" };
+            errorMessage = new Label();
+            int maxValue = 200000;
+
+            cryptoQty.TextChanged += (sender, e) => 
+            {
+                int days;
+                double qty;
+                var now = DateTime.Now;
+                var defaultDate = now.AddDays(100);
+
+                var ok = double.TryParse(cryptoQty.Text, out qty);
+                if(!ok) cryptoQty.Text = "";
+
+                if(_crypto.CurrentPrice * qty > maxValue)
+                {
+                    errorMessage.Text = $"Stai chiedendo troppo, non sono\nconcessi prestiti sopra i {maxValue}$ di valore";
+                    loanValue = maxValue;
+                    cryptoQty.Text = (maxValue / _crypto.CurrentPrice).ToString();
+                    return;
+                }
+
+                loanQty = qty;
+                loanValue = _crypto.CurrentPrice * qty;
+                days = Convert.ToInt32(_crypto.CurrentPrice * qty / (maxValue / 1000));
+                var finalDate = now.AddDays(days);
+                if(days == 0) finalDate = defaultDate;
+
+                expireDate.Text = $"Scadenza: {finalDate}";
+                errorMessage.Text = "";
+            };
+
+            advance.TextChanged += (sender, e) => 
+            {
+                double value;
+                var ok = double.TryParse(advance.Text, out value);
+                if(!ok)
+                {
+                    advance.Text = "";
+                }
+                if(value > loanValue/2) 
+                {
+                    advance.Text = "";
+                    confirmButton.Enabled = false;
+                    errorMessage.Text = "Non puoi anticipare più della\nmetà del valore richiesto!";
+                    return;
+                }
+                confirmButton.Enabled = true;
+                advanceValue = value;
+            };
+
+            return new Tuple<TextBox, TextBox>(cryptoQty, advance);
+        }
+
+        private TableLayout CreateTable(params TableRow[] rows)
+        {
+            var table = new TableLayout();
+            table.Padding = TABLE_PADDING;
+            table.Spacing = TABLE_SPACING;
+            foreach(var row in rows) 
+                table.Rows.Add(row);
+            return table;
         }
     }
 
@@ -212,7 +372,8 @@ namespace CoinManager.GUI
             return dropDown;
         }
     }
-    public class SendDialog: Panel
+
+    public class SendDialog : Panel
     {
         private CMDbContext db;
 
@@ -223,7 +384,8 @@ namespace CoinManager.GUI
             var table = new TableLayout();
             var stack = new StackLayout();
             var dropDown = new DropDown();
-            wallet.ForEach( w =>
+
+            wallet.ForEach(w =>
                     {
                         dropDown.Items.Add(new ListItem { Text = w.CryptoId });
                     });
@@ -261,7 +423,6 @@ namespace CoinManager.GUI
                                         {
                                             Text = "Send",
                                             Command = cmdSend
-
                                         })
             );
             table.Rows.Add(destinationRow);
