@@ -102,9 +102,16 @@ namespace CoinManager.GUI
     
     public class Wallet : Panel
     {
+        
         public string Name { get; } = "Wallet";
         private CMDbContext db;
         private TableLayout layout = new TableLayout
+                {
+                    Spacing = new Size(5, 5),
+                    Padding = new Padding(10, 10, 10, 10), 
+                
+                };
+         private TableLayout transLayout = new TableLayout
                 {
                     Spacing = new Size(5, 5),
                     Padding = new Padding(10, 10, 10, 10), 
@@ -115,6 +122,8 @@ namespace CoinManager.GUI
 
         public Wallet()
         {
+            var collection = new ObservableCollection<GuiTransaction>();
+            var grid = new GridView { DataStore = collection };
             Func<TableLayout> createLayout = () =>
             {
                 var t = new TableLayout
@@ -147,7 +156,8 @@ namespace CoinManager.GUI
                         }
                     );
                 var cryptoList = new TableRow(
-                    new Scrollable(){
+                    new Scrollable()
+                    {
                         Content = layout
                     });
                 var dyn = new DynamicLayout();
@@ -168,19 +178,55 @@ namespace CoinManager.GUI
                                             }),
                                             Width = BUTTON_WIDTH});
                 dyn.AddColumn(new Button(){Text = "Refresh", Width = BUTTON_WIDTH});
-                var tenTrans = new TableRow(
-                        TableLayout.AutoSized(new ListBox())
-                    );
+
+                var tenTrans = createTransList();
+                tenTrans.ForEach(x => {
+                    var cont = 10;
+                    if(cont !=0)
+                        collection.Add(x);
+                    });
+                foreach(var c in CreateColums())
+                    grid.Columns.Add(c);
                 t.Rows.Add(title);
                 t.Rows.Add(cryptoList);
                 t.Rows.Add(dyn);
-                t.Rows.Add(tenTrans);
+                t.Rows.Add(new TableRow(new Label(){Text = "Last ten transactions"}));
+                t.Rows.Add(/*TableLayout.AutoSized(grid)*/grid);
                 return t;
             };
             Content = createLayout();
         }
 
-        public void FillWallet(){}
+        private List<GuiTransaction> createTransList()
+        {
+            return db.Transaction.Select(c => new GuiTransaction{
+                            Id = c.Id,
+                            SourceId = c.SourceId,
+                            DestinationId = c.DestinationId,
+                            CryptoId = c.CryptoId,
+                            StartDate = c.StartDate,
+                            FinishDate = c.FinishDate,
+                            CryptoQuantity = c.CryptoQuantity,
+                            State = c.State
+                    }).OrderByDescending(x => x.StartDate).ToList();
+        }
+        private List<GridColumn> CreateColums()
+        {
+            var list = new List<GridColumn>();
+            foreach(var prop in typeof(GuiTransaction).GetProperties())
+            {
+                list.Add(new GridColumn 
+                        { 
+                            HeaderText = prop.Name.ToString(),
+                            DataCell = new TextBoxCell 
+                            { 
+                                Binding = Binding.Property<GuiTransaction, string>
+                                (p => prop.GetValue(p).ToString()),
+                            },
+                        });
+            }
+            return list;
+        }
     }
 
     public class Profile : Panel

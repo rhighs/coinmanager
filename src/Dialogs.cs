@@ -253,7 +253,7 @@ namespace CoinManager.GUI
             var cmdSend = new Command((sender, e) =>
                              {
                                 if(dropDown.SelectedValue != null)
-                                    textBox.Text = "Send!";
+                                    MessageBox.Show("Send!", 0);
                             });
             var sendRow = new TableRow
             (
