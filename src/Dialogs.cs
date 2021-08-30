@@ -184,7 +184,7 @@ namespace CoinManager.GUI
 
                 if(_crypto.CurrentPrice * qty > maxValue)
                 {
-                    errorMessage.Text = $"Stai chiedendo troppo, non sono\nconcessi prestiti sopra i {maxValue}$ di valore";
+                    errorMessage.Text = $"Stai chiedendo troppo, non sono\nconcessi prestiti sopra i {maxValue}$ di valore!";
                     loanValue = maxValue;
                     cryptoQty.Text = (maxValue / _crypto.CurrentPrice).ToString();
                     return;
@@ -207,6 +207,7 @@ namespace CoinManager.GUI
                 if(!ok)
                 {
                     advance.Text = "";
+                    return;
                 }
                 if(value > loanValue/2) 
                 {
@@ -215,6 +216,7 @@ namespace CoinManager.GUI
                     errorMessage.Text = "Non puoi anticipare più della\nmetà del valore richiesto!";
                     return;
                 }
+                errorMessage.Text = "";
                 confirmButton.Enabled = true;
                 advanceValue = value;
             };
