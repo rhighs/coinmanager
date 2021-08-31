@@ -239,12 +239,16 @@ namespace CoinManager.GUI
 
     public class Profile : Panel
     {
+        public UserStandard logged;
+        public CMDbContext db;
         public string Name { get; } = "Profile";
 
         private List<UserStandard> _friends;
         private List<RunningTransaction> _runningTransactions;
         static private Padding PANEL_PADDING = new Padding(10);
         static private Padding CONTENTS_PADDING = new Padding(10);
+        static private Size IMAGE_SIZE = new Size(200, 200);
+        static private string IMAGE_PATH = "./res/profile.png";
 
         public Profile(
                 List<UserStandard> friends,
@@ -263,17 +267,21 @@ namespace CoinManager.GUI
 
             var infoCell = new TableCell(CreateInfoStack(), true);
             var listsCell = new TableCell(lists, true);
-            mainTable.Rows.Add(new TableRow { Cells = { infoCell, listsCell } });
+            mainTable.Rows.Add(new TableRow { Cells = { infoCell, listsCell }, ScaleHeight = true });
             Padding = PANEL_PADDING;
             Content = mainTable;
         }
 
         private StackLayout CreateInfoStack()
         {
+            db = CMDbContext.Instance;
+            logged = CMDbContext.LoggedUser;
+            var user =  db.UserStandard.FirstOrDefault(u => u.Username == logged.Username && u.Password == logged.Password);
             var stack = new StackLayout();
-            stack.Items.Add(new Label { Text = "Username" });
-            stack.Items.Add(new Label { Text = "Email" });
-            stack.Items.Add(new Label { Text = "Other data..." });
+            var image = new Bitmap(IMAGE_PATH);
+            stack.Items.Add(new ImageView{Image = image, Size = IMAGE_SIZE});
+            stack.Items.Add(new Label { Text = "Id: " + user.Id});
+            stack.Items.Add(new Label { Text = "Username: " + user.Username, Size = new Size(400,400)});
             return stack;
         }
 

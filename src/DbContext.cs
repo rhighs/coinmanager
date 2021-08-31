@@ -33,6 +33,7 @@ namespace CoinManager.EF
         {
             connectionString = $"Host={host};Database={dbName};Username={username};Password={password}";
             Instance = this;
+            LoggedUser = new UserStandard{Username = username, Password = password};
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
