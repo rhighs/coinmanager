@@ -240,10 +240,11 @@ namespace CoinManager.GUI
     public class Profile : Panel
     {
         public string Name { get; } = "Profile";
+
         private List<UserStandard> _friends;
         private List<RunningTransaction> _runningTransactions;
-        static private Padding CONTENTS_PADDING = new Padding(10);
         static private Padding PANEL_PADDING = new Padding(10);
+        static private Padding CONTENTS_PADDING = new Padding(10);
 
         public Profile(
                 List<UserStandard> friends,

@@ -1,7 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CoinManager.EF
 {
@@ -28,6 +27,7 @@ namespace CoinManager.EF
         private string connectionString;
 
         public static CMDbContext Instance;
+        public static UserStandard LoggedUser;
 
         public CMDbContext(string host, string dbName, string username, string password) 
         {
