@@ -8,6 +8,7 @@ using Eto.Forms;
 using Eto.Drawing;
 using CoinManager.EF;
 using CoinManager.Models.GUI;
+
 namespace CoinManager.GUI
 {
     public class CryptoDialog : Panel
@@ -248,13 +249,26 @@ namespace CoinManager.GUI
         private TextBox cryptoQty1;
         private TextBox cryptoQty2;
         private bool buySelected;
+        private double userCryptoBalance;
+        private double userUsdtBalance;
 
         private readonly Size TABLE_SPACING = new Size(20, 20);
         private readonly Padding TABLE_PADDING = new Padding(20);
 
+        private UserStandard user;
+
+        private EF.Wallet cryptoWallet;
+        private EF.Wallet usdtWallet;
+
         public BuySellDialog(Crypto crypto)
         {
-            _crypto = crypto;
+            _crypto  = crypto;
+            db       = CMDbContext.Instance;
+            user     = CMDbContext.LoggedUser; 
+            cryptoWallet = db.Wallet.Find(user.Id, _crypto.Id);
+            usdtWallet   = db.Wallet.Find(user.Id, "tether");
+            userCryptoBalance = cryptoWallet == null ? 0 : cryptoWallet.Quantity;
+            userUsdtBalance = usdtWallet == null ? 0 : usdtWallet.Quantity;
 
             var inputsQty = CreateInputs();
             var cryptoName1 = new Label { Text = "Dollari" };
@@ -295,8 +309,8 @@ namespace CoinManager.GUI
 
         private Tuple<TextBox, TextBox> CreateInputs()
         {
-            var c1 = new TextBox { PlaceholderText = "USDT" };
-            var c2 = new TextBox { PlaceholderText = _crypto.Symbol.ToUpper() };
+            var c1 = new TextBox { PlaceholderText = $"USDT | saldo: {userUsdtBalance}" };
+            var c2 = new TextBox { PlaceholderText = $"{_crypto.Symbol.ToUpper()} | saldo: {userCryptoBalance}" };
 
             System.EventHandler<System.EventArgs> cmdCheckValue = (sender, e) => 
             {
@@ -310,6 +324,34 @@ namespace CoinManager.GUI
                     c2.Text = (qty / _crypto.CurrentPrice).ToString();
                 else
                     c1.Text = (qty * _crypto.CurrentPrice).ToString();
+            };
+
+            c1.TextChanged += (sender, e) => 
+            {
+                if(!buySelected) return;
+                var t = sender as TextBox;
+                double qty;
+                var ok = double.TryParse(t.Text, out qty);
+                if(!ok) t.Text = "";
+                if(qty > userUsdtBalance)
+                {
+                    qty = userUsdtBalance;
+                    t.Text = userUsdtBalance.ToString();
+                } 
+            };
+
+            c2.TextChanged += (sender, e) => 
+            {
+                if(buySelected) return;
+                var t = sender as TextBox;
+                double qty;
+                var ok = double.TryParse(t.Text, out qty);
+                if(!ok) t.Text = "";
+                if(qty > userCryptoBalance)
+                {
+                    qty = userCryptoBalance;
+                    t.Text = userCryptoBalance.ToString();
+                }
             };
 
             c2.Enabled = false;
@@ -347,20 +389,42 @@ namespace CoinManager.GUI
                     new ListItem { Text = "Vendi" }
                 }
             };
+
             var cmdConfirm = new Command((sender, e) =>
             {
-                if(buySelected)
-                {
-                    Console.WriteLine($"Buying {cryptoQty2.Text} with {cryptoQty1.Text}");
+                var outGoing = Double.Parse(buySelected ? cryptoQty1.Text : cryptoQty2.Text);
+                var onGoing = Double.Parse(buySelected ? cryptoQty2.Text : cryptoQty1.Text);
+                if(cryptoWallet == null) {
+                    cryptoWallet = new EF.Wallet
+                    {
+                        UserId = user.Id,
+                        CryptoId = _crypto.Id,
+                        Quantity = 0
+                    };
+                    db.Wallet.Add(cryptoWallet);
+                    db.SaveChanges();
                 }
-                else
+                cryptoWallet.Quantity += buySelected ? onGoing : -outGoing;
+                usdtWallet.Quantity += buySelected ? -outGoing : onGoing;
+                db.Wallet.Update(cryptoWallet);
+                db.Wallet.Update(usdtWallet);
+                db.SaveChanges();
+
+                var dialog = new Dialog
                 {
-                    Console.WriteLine($"Selling {cryptoQty2.Text} for {cryptoQty1.Text}");
-                }
+                    Padding = TABLE_PADDING,
+                    Content = new Label 
+                    { 
+                        Text = buySelected
+                            ? "Acquisto eseguito con successo!"
+                            : "Vendita eseguita con successo!"
+                    }
+                };
+                dialog.ShowModal();
             });
 
             dropDown.SelectedIndex = (int)MarketAction.BUY;
-            confirmButton.Command = cmdConfirm; //buy set as default
+            confirmButton.Command = cmdConfirm;
             buySelected = dropDown.SelectedIndex == (int)MarketAction.BUY;
 
             dropDown.SelectedIndexChanged += (sender, e) => 
