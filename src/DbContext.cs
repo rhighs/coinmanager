@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace CoinManager.EF
 {
@@ -22,7 +23,7 @@ namespace CoinManager.EF
         public DbSet<Wallet> Wallet { get; set; }
         public DbSet<Transaction> Transaction { get; set; }
         public DbSet<RunningTransaction> RunningTransaction { get; set; }
-        public DbSet<Buy> Buy{ get; set; }
+        public DbSet<Buy> Buy { get; set; }
         public DbSet<Loan> Loan { get; set; }
         private string connectionString;
 
@@ -33,7 +34,12 @@ namespace CoinManager.EF
         {
             connectionString = $"Host={host};Database={dbName};Username={username};Password={password}";
             Instance = this;
-            LoggedUser = new UserStandard{Username = username, Password = password};
+
+            //set default user as the first, temporary solution
+            Task.Run(async () => 
+            {
+                LoggedUser = (await UserStandard.ToListAsync())[0];
+            }).Wait();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
