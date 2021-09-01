@@ -38,6 +38,7 @@ namespace CoinManager.GUI
             var dropDown = new DropDown{ Items = {
                 DropItems.All.ToString(), DropItems.Running.ToString()
             }};
+
             var cmdAdd = new Command((sender, e) =>
                              {
                                 collection.Clear();
@@ -102,28 +103,37 @@ namespace CoinManager.GUI
     
     public class Wallet : Panel
     {
-        private CMDbContext db;
         public string Name { get; } = "Wallet";
+
         private const int BUTTON_WIDTH = 50;
         private const int GRID_HEIGHT = 300;
         private readonly Size DIALOG_SIZE = new Size(600, 300);
+
+        private CMDbContext db;
+        private UserStandard user;
+
+        private List<GuiWallet> guiWallets;
 
         private TableLayout layout = new TableLayout
         {
             Spacing = new Size(5, 5),
             Padding = new Padding(10, 10, 10, 10), 
         };
+
         private TableLayout transLayout = new TableLayout
         {
             Spacing = new Size(5, 5),
             Padding = new Padding(10, 10, 10, 10), 
         };
 
-        public Wallet()
+        protected override void OnShown(EventArgs e)
         {
+            db = CMDbContext.Instance;
             layout.Size = new Size(Width, Height / 2);
             var collection = new ObservableCollection<GuiTransaction>();
             var grid = new GridView { DataStore = collection };
+            user = CMDbContext.LoggedUser;
+
             Func<TableLayout> createLayout = () =>
             {
                 var t = new TableLayout
@@ -138,21 +148,7 @@ namespace CoinManager.GUI
                     )
                 );
                 
-                db = CMDbContext.Instance;
-                var wallet = db.Wallet.Select(c => new GuiWallet{
-                    CryptoId = c.CryptoId,
-                    Quantity = c.Quantity
-                }).ToList();
-
-                wallet.ForEach(w => 
-                {
-                    var cryptoList = new TableRow(
-                        new TableCell(new Label() { Text = w.CryptoId}, true),
-                        new TableCell(new Label() { Text = w.Quantity.ToString()}, true)
-                    );
-                    layout.Rows.Add(cryptoList);
-                });
-
+                guiWallets = CreateWallet();
                 var cryptoList = new TableRow { Cells = { new Scrollable { Content = layout } } };
                 var dyn = new DynamicLayout();
 
@@ -161,7 +157,7 @@ namespace CoinManager.GUI
                         Text = "Send", 
                         Command = new Command((sender, e) =>
                         {
-                            var content = new SendDialog(wallet)
+                            var content = new SendDialog(guiWallets)
                             {
                                 Size = DIALOG_SIZE
                             };
@@ -175,7 +171,17 @@ namespace CoinManager.GUI
                          Width = BUTTON_WIDTH
                 });
 
-                dyn.AddColumn(new Button(){Text = "Refresh", Width = BUTTON_WIDTH});
+                var refreshButton = new Button
+                {
+                    Text = "Aggiorna",
+                    Width = BUTTON_WIDTH,
+                    Command = new Command((sender, e) =>
+                            {
+                                guiWallets = CreateWallet();                                
+                            })
+                };
+
+                dyn.AddColumn(refreshButton);
 
                 var tenTrans = createTransList();
                 tenTrans.ForEach(x => 
@@ -199,8 +205,33 @@ namespace CoinManager.GUI
                 t.Rows.Add(new TableRow { Cells = { grid       }, ScaleHeight = true });
                 return t;
             };
-
             Content = createLayout();
+        }
+
+        private List<GuiWallet> CreateWallet()
+        {
+            var wallets = db.Wallet.ToList();
+            var layout = new TableLayout();
+            wallets.ForEach(w => 
+            {
+                if(w.UserId == user.Id)
+                {
+                    var cryptoRow = new TableRow(
+                        new TableCell(new Label() { Text = w.CryptoId}, true),
+                        new TableCell(new Label() { Text = w.Quantity.ToString()}, true)
+                    );
+                    layout.Rows.Add(cryptoRow);
+                }
+            });
+
+            var guiWallets = wallets.Select(w => new GuiWallet
+            {
+                CryptoId = w.CryptoId,
+                Quantity = w.Quantity
+            }).ToList();
+
+            this.layout = layout;
+            return guiWallets;
         }
 
         private List<GuiTransaction> createTransList()
@@ -276,12 +307,11 @@ namespace CoinManager.GUI
         {
             db = CMDbContext.Instance;
             logged = CMDbContext.LoggedUser;
-            var user =  db.UserStandard.FirstOrDefault(u => u.Username == logged.Username && u.Password == logged.Password);
             var stack = new StackLayout();
             var image = new Bitmap(IMAGE_PATH);
             stack.Items.Add(new ImageView{Image = image, Size = IMAGE_SIZE});
-            stack.Items.Add(new Label { Text = "Id: " + user.Id});
-            stack.Items.Add(new Label { Text = "Username: " + user.Username, Size = new Size(400,400)});
+            stack.Items.Add(new Label { Text = "Id: " + logged.Id });
+            stack.Items.Add(new Label { Text = "Username: " + logged.Username, Size = new Size(400,400)});
             return stack;
         }
 
