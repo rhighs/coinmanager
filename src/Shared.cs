@@ -141,53 +141,42 @@ namespace CoinManager.Models
 
         public class GuiTransaction
         {
-            private int id;
-            private int sourceId;
-            private int destinationId;
-            private string cryptoId;
-            private int state;
-
-            public int Id {get;set;}
-            public int SourceId {get;set;}
-            public int DestinationId {get;set;}
-            public string CryptoId {get;set;}
-            public int State {get;set;}
-            public DateTime StartDate{get;set;}
-            public DateTime FinishDate{get;set;}
-            public double CryptoQuantity{get;set;}
+            public int Id { get; set; }
+            public int SourceId { get; set; }
+            public int DestinationId { get; set; }
+            public string CryptoId { get; set; }
+            public int State { get; set; }
+            public DateTime StartDate{ get; set; }
+            public DateTime FinishDate{ get; set; }
+            public double CryptoQuantity{ get; set; }
             
         }
 
         public class GuiWallet
         {
-            private int userId;
-            private string cryptoId;
-            private double quantity;
-
-            public int UserId {get;set;}
-            public string CryptoId {get;set;}
-            public double Quantity {get;set;}
+            public int UserId { get; set; }
+            public string CryptoId { get; set; }
+            public double Quantity { get; set; }
             
         }
 
         public class GuiFriendship
         {
-            private int userId;
-            private int friendId;
-            public int UserId{get;set;}
-            public int FriendId{get;set;}
+            public int UserId { get; set; }
+            public int FriendId { get; set; }
         }
 
         public class GuiUser
         {
-            public int Id  {get; set;}
-            public string Username {get; set;}
-            public string Password {get; set;}
+            public int Id { get; set; }
+            public string Username { get; set; }
+            public string Password { get; set; }
         }
+
         public class GuiFriendRequest
         {
-            public int SenderId{get;set;}
-            public int ReceiverId{get;set;}
+            public int SenderId{ get; set; }
+            public int ReceiverId{ get; set; }
         }
     }
 
