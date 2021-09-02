@@ -45,7 +45,7 @@ CREATE TABLE "Transaction" (
     "StartDate" TIMESTAMP WITH TIME ZONE,
     "FinishDate" TIMESTAMP WITH TIME ZONE,
     "CryptoQuantity" FLOAT NOT NULL,
-    "MinerId" INTEGER NOT NULL,
+    "MinerId" INTEGER,
     "State" INTEGER NOT NULL,
     FOREIGN KEY ("MinerId") REFERENCES "UserMiner"("Id"),
     CONSTRAINT ValidState CHECK ( "State" BETWEEN 1 AND 3 )
