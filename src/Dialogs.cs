@@ -8,6 +8,7 @@ using Eto.Forms;
 using Eto.Drawing;
 using CoinManager.EF;
 using CoinManager.Models.GUI;
+using System.Linq;
 
 namespace CoinManager.GUI
 {
@@ -439,57 +440,217 @@ namespace CoinManager.GUI
         }
     }
 
+    public class FriendDialog : Panel
+    {
+        private const int BUTTON_WIDTH = 50;
+        private CMDbContext db;
+        private UserStandard user;
+        public FriendDialog()
+        {
+            db = CMDbContext.Instance;
+            user = CMDbContext.LoggedUser;
+            var table = new TableLayout();
+            var label = new Label{Text = "Friend Id to invite", Size = new Size(30,30)};
+            var textBox = new TextBox{Size = new Size(30,10)};
+            var button = new Button
+            {
+                Text = "Send invite",
+                Command = new Command((sender, e) =>
+                        {
+                            db.FriendRequest.Add(new EF.FriendRequest
+                            {
+                                SenderId = user.Id,
+                                ReceiverId = Convert.ToInt32(textBox.Text)
+                            });
+                            db.SaveChanges();
+                            MessageBox.Show("Send!", 0);
+                         }),
+                Width = BUTTON_WIDTH,
+                Height = 10
+            };
+            table.Rows.Add(new TableRow { Cells= {label,textBox}, ScaleHeight = true});
+            table.Rows.Add(new TableRow { Cells= {button}});            
+            Content = table;
+        }
+    }
+
+    public class RequestDialog : Panel
+    {
+        private const int BUTTON_WIDTH = 50;
+        static private Padding PANEL_PADDING = new Padding(10);
+        static private Padding CONTENTS_PADDING = new Padding(10);
+        private CMDbContext db;
+        private UserStandard user;
+        public RequestDialog()
+        {
+            db = CMDbContext.Instance;
+            user = CMDbContext.LoggedUser;
+            var table = new TableLayout();
+            table.Rows.Add(new TableRow { Cells= { CreateRequestsList() }, ScaleHeight = true});           
+            Content = table;
+        }
+
+
+        private GroupBox CreateRequestsList()
+        {
+            var group = new GroupBox();
+            var friendsTable = new TableLayout();
+            var friend = db.FriendRequest.Select(f => new GuiFriendRequest
+                {
+                    SenderId = f.SenderId,
+                    ReceiverId = f.ReceiverId
+                }).ToList();
+            friend.ForEach(f => 
+                {
+                    if(f.SenderId != user.Id && f.ReceiverId == user.Id)
+                    {
+                        var id = new TableCell(new Label { Text = f.SenderId.ToString() }, true);
+                        var username = new TableCell(new Label { Text = GetSenderName(f.SenderId) }, true);
+                        var button = TableLayout.AutoSized(new Button 
+                            { 
+                                Text = "Accept",
+                                Command = new Command((sender, e) =>
+                                {
+                                    var accepted = new EF.FriendRequest
+                                    {
+                                        SenderId = f.SenderId,
+                                        ReceiverId = user.Id
+                                    };
+                                    var acceptedFriendship = new EF.Friendship
+                                    {
+                                        UserId = f.ReceiverId,
+                                        FriendId = f.SenderId
+                                    };
+                                    db.FriendRequest.Remove(accepted);
+                                    db.Friendship.Add(acceptedFriendship);
+
+                                    db.SaveChanges();
+                                    MessageBox.Show("Friend Accepted!", 0);
+                                })
+                            });
+                        
+                        friendsTable.Rows.Add(new TableRow { Cells = { id, username, button }, ScaleHeight = false });
+                    }
+                });
+            return CreateScrollableGroup("Friends Requests", friendsTable);
+        }
+
+        public string GetSenderName(int SenderId)
+        {
+            var list = db.UserStandard.Select(u => new GuiUser
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Password = u.Password
+                }).ToList();
+            
+            foreach (var l in list)
+            {
+                if(l.Id == SenderId)
+                    return l.Username;
+            };
+            return "no friends";
+        }
+        private GroupBox CreateScrollableGroup(string Title, Container container)
+        {
+            var group = new GroupBox();
+            var scroll = new Scrollable();
+            scroll.Content = container;
+            scroll.Padding = CONTENTS_PADDING;
+            group.Text = Title;
+            group.Content = scroll;
+            group.Padding = CONTENTS_PADDING;
+            return group;
+        }
+    }
+
     public class SendDialog : Panel
     {
         private CMDbContext db;
+        private UserStandard user;
 
         public SendDialog(List<GuiWallet> wallet)
         {
             db = CMDbContext.Instance;
-
+            user = CMDbContext.LoggedUser;
             var table = new TableLayout();
             var stack = new StackLayout();
-            var dropDown = new DropDown();
-
+            var dropCrypto = new DropDown();
+            var dropFriends = new DropDown();
+            var friends = db.Friendship.Select(f => new GuiFriendship
+                {
+                    UserId = f.UserId,
+                    FriendId = f.FriendId
+                }).ToList();
+            friends.ForEach(f => 
+                {   
+                    if(f.UserId == user.Id)
+                        dropFriends.Items.Add(new ListItem {Text = f.FriendId.ToString()});
+                });
             wallet.ForEach(w =>
                     {
-                        dropDown.Items.Add(new ListItem { Text = w.CryptoId });
+                        dropCrypto.Items.Add(new ListItem { Text = w.CryptoId });
                     });
             
             var destinationRow = new TableRow
             (
                 TableLayout.AutoSized(new Label { Text = "Destination" }),
-                TableLayout.AutoSized(new DropDown())
+                TableLayout.AutoSized(dropFriends)
             );
             var walletRow = new TableRow
             (
                  TableLayout.AutoSized(new Label { Text = "Crypto to send" }),
-                 TableLayout.AutoSized(dropDown)
+                 TableLayout.AutoSized(dropCrypto)
             );
             var textBox = new TextBox();
             var quantityRow = new TableRow
             (
                 TableLayout.AutoSized(new Label { Text = "Quantity to send" }),
                 TableLayout.AutoSized(textBox)
-                //sarebbe una bella idea
-                /*new Slider { 
-                    MaxValue = wallet.Find(dropDown.SelectedValue).Quantity,
-                    MinValue = 0,
-                    Orientation = 0
-                }*/
+                
             );
+            var transList = db.Transaction.Select(c => new GuiTransaction
+                {
+                    Id = c.Id
+                }).OrderByDescending(x => x.Id).ToList();
             var cmdSend = new Command((sender, e) =>
                              {
-                                if(dropDown.SelectedValue != null)
+                                if(dropCrypto.SelectedValue != null)
+                                {
+                                    var transaction = new EF.Transaction
+                                    {
+                                        Id = ++transList[0].Id,
+                                        SourceId = user.Id,
+                                        DestinationId = Convert.ToInt32(dropFriends.SelectedKey),
+                                        CryptoId = dropCrypto.SelectedKey,
+                                        StartDate = DateTime.Now,
+                                        FinishDate = DateTime.Now,
+                                        CryptoQuantity = Double.Parse(textBox.Text),
+                                        State = 2
+                                    };
+                                    db.Transaction.Add(transaction);
+                                    /*db.RunningTransaction.Add(new EF.RunningTransaction
+                                    {
+                                        TransactionId = transaction.Id,
+                                        StartDate = transaction.StartDate,
+                                        //Bisogna mettere total time anche nel dbcontext
+                                        //FinishDate = transaction.FinishDate,
+                                        //!!! bro mi da che viola la foreign key non riesco a capire cazzo voglia
+                                        MinerId = user.Id
+                                    });*/
+                                    db.SaveChanges();
+                                    Console.WriteLine(textBox.Text);
                                     MessageBox.Show("Send!", 0);
+
+                                }
                             });
             var sendRow = new TableRow
             (
                 TableLayout.AutoSized(new Button
-                                        {
-                                            Text = "Send",
-                                            Command = cmdSend
-                                        })
+                    {
+                        Text = "Send",
+                        Command = cmdSend
+                    })
             );
             table.Rows.Add(destinationRow);
             table.Rows.Add(walletRow);

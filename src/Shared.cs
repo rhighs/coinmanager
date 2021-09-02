@@ -169,6 +169,26 @@ namespace CoinManager.Models
             public double Quantity {get;set;}
             
         }
+
+        public class GuiFriendship
+        {
+            private int userId;
+            private int friendId;
+            public int UserId{get;set;}
+            public int FriendId{get;set;}
+        }
+
+        public class GuiUser
+        {
+            public int Id  {get; set;}
+            public string Username {get; set;}
+            public string Password {get; set;}
+        }
+        public class GuiFriendRequest
+        {
+            public int SenderId{get;set;}
+            public int ReceiverId{get;set;}
+        }
     }
 
     namespace CG

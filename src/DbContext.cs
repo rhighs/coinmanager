@@ -25,6 +25,9 @@ namespace CoinManager.EF
         public DbSet<RunningTransaction> RunningTransaction { get; set; }
         public DbSet<Buy> Buy { get; set; }
         public DbSet<Loan> Loan { get; set; }
+        public DbSet<Friendship> Friendship { get; set; }
+
+        public DbSet<FriendRequest> FriendRequest { get; set; }
         private string connectionString;
 
         public static CMDbContext Instance;
@@ -49,6 +52,10 @@ namespace CoinManager.EF
         {
             modelBuilder.Entity<Wallet>()
                 .HasKey(w => new { w.UserId , w.CryptoId });
+            modelBuilder.Entity<Friendship>()
+                .HasKey(f => new {f.UserId, f.FriendId});
+            modelBuilder.Entity<FriendRequest>()
+                .HasKey(f => new {f.SenderId, f.ReceiverId});
         }
     }
 
@@ -111,7 +118,7 @@ namespace CoinManager.EF
         [Key]
         public int TransactionId        { get; set; }
         public DateTime StartDate       { get; set; }
-        public DateTime FinishDate      { get; set; }
+        //public DateTime FinishDate      { get; set; }
         public int MinerId              { get; set; }
     }
 
@@ -134,5 +141,20 @@ namespace CoinManager.EF
         public double LoanQuantity      { get; set; }
         public double Advance           { get; set; }
         public DateTime ExpireDate      { get; set; }
+    }
+
+    public class Friendship
+    {
+        [Key]
+        public int UserId{get; set;}
+        [Key]
+        public int FriendId{get; set;}
+    }
+    public class FriendRequest
+    {
+        [Key]
+        public int SenderId{get; set;}
+        [Key]
+        public int ReceiverId{get; set;}
     }
 }

@@ -171,18 +171,6 @@ namespace CoinManager.GUI
                          Width = BUTTON_WIDTH
                 });
 
-                var refreshButton = new Button
-                {
-                    Text = "Aggiorna",
-                    Width = BUTTON_WIDTH,
-                    Command = new Command((sender, e) =>
-                            {
-                                guiWallets = CreateWallet();                                
-                            })
-                };
-
-                dyn.AddColumn(refreshButton);
-
                 var tenTrans = createTransList();
                 tenTrans.ForEach(x => 
                 {
@@ -270,25 +258,26 @@ namespace CoinManager.GUI
 
     public class Profile : Panel
     {
+        private const int BUTTON_WIDTH = 150;
+        private readonly Size DIALOG_SIZE = new Size(600, 300);
         public UserStandard logged;
         public CMDbContext db;
         public string Name { get; } = "Profile";
 
-        private List<UserStandard> _friends;
         private List<RunningTransaction> _runningTransactions;
         static private Padding PANEL_PADDING = new Padding(10);
         static private Padding CONTENTS_PADDING = new Padding(10);
         static private Size IMAGE_SIZE = new Size(200, 200);
         static private string IMAGE_PATH = "./res/profile.png";
 
-        public Profile(
-                List<UserStandard> friends,
-                List<RunningTransaction> runningTransactions,
-                bool isMiner = false
-                )
+        protected override void OnShown(EventArgs e)
         {
+            db = CMDbContext.Instance;
+            logged = CMDbContext.LoggedUser;
+            bool isMiner = false;
             var mainTable = new TableLayout();
             var lists = new TableLayout();
+            
 
             lists.Rows.Add(new TableRow { Cells = { CreateFriendsList() }, ScaleHeight = true });
             if(!isMiner)
@@ -305,13 +294,50 @@ namespace CoinManager.GUI
 
         private StackLayout CreateInfoStack()
         {
-            db = CMDbContext.Instance;
-            logged = CMDbContext.LoggedUser;
+            
             var stack = new StackLayout();
             var image = new Bitmap(IMAGE_PATH);
+            var requestButton = new Button
+            {
+                Text = "Send friend request",
+                Command = new Command((sender, e) =>
+                        {
+                            var content = new FriendDialog
+                            {
+                                Size = DIALOG_SIZE
+                            };
+                            var dialog = new Dialog
+                            {
+                                Size = content.Size,
+                                Content = content
+                            };
+                            dialog.ShowModal();
+                         }),
+                Width = BUTTON_WIDTH
+            };
+            var showReqButton = new Button
+            {
+                Text = "Not Accepted Request",
+                Command = new Command((sender, e) =>
+                        {
+                            var content = new RequestDialog
+                            {
+                                Size = DIALOG_SIZE
+                            };
+                            var dialog = new Dialog
+                            {
+                                Size = content.Size,
+                                Content = content
+                            };
+                            dialog.ShowModal();
+                         }),
+                Width = BUTTON_WIDTH
+            };
             stack.Items.Add(new ImageView{Image = image, Size = IMAGE_SIZE});
             stack.Items.Add(new Label { Text = "Id: " + logged.Id });
-            stack.Items.Add(new Label { Text = "Username: " + logged.Username, Size = new Size(400,400)});
+            stack.Items.Add(new Label { Text = "Username: " + logged.Username, Size = new Size(50,50)});
+            stack.Items.Add(requestButton);
+            stack.Items.Add(showReqButton);
             return stack;
         }
 
@@ -319,18 +345,54 @@ namespace CoinManager.GUI
         {
             var group = new GroupBox();
             var friendsTable = new TableLayout();
-            /*
-            foreach(var friend in _friends) {
-                var button = TableLayout.AutoSized(new Button { Text = "Remove" });
-                var firstName = new TableCell(new Label { Text = "friend data" }, true);
-                var username = new TableCell(new Label { Text = "friend data" }, true);
-
-                friendsTable.Rows.Add(new TableRow { Cells = { firstName, username, button }, ScaleHeight = false });
-            }
-            */
+            var friend = db.Friendship.Select(f => new GuiFriendship
+                {
+                    UserId = f.UserId,
+                    FriendId = f.FriendId
+                }).ToList();
+            friend.ForEach(f => 
+                {
+                    if(f.UserId == logged.Id)
+                    {
+                        var id = new TableCell(new Label { Text = f.FriendId.ToString() }, true);
+                        var username = new TableCell(new Label { Text = GetFriendName(f.FriendId) }, true);
+                        var button = TableLayout.AutoSized(new Button 
+                            { 
+                                Text = "Remove", 
+                                Tag = f.FriendId,
+                                Command = new Command((sender, e) =>
+                                {
+                                    var deleted = new EF.Friendship
+                                    {
+                                        UserId = logged.Id,
+                                        FriendId = f.FriendId
+                                    };
+                                    db.Friendship.Remove(deleted);
+                                    db.SaveChanges();
+                                })
+                            });
+                        
+                        friendsTable.Rows.Add(new TableRow { Cells = { id, username, button }, ScaleHeight = false });
+                    }
+                });
             return CreateScrollableGroup("Amici", friendsTable);
         }
-
+        public string GetFriendName(int FriendId)
+        {
+            var list = db.UserStandard.Select(u => new GuiUser
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Password = u.Password
+                }).ToList();
+            
+            foreach (var l in list)
+            {
+                if(l.Id == FriendId)
+                    return l.Username;
+            };
+            return "no friends";
+        }
         public GroupBox CreateMinerSection()
         {
             var scroll = new Scrollable();
