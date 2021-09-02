@@ -94,7 +94,7 @@ CREATE TABLE "MinerSession" (
 CREATE TABLE "Friendship" (
     "UserId" INTEGER NOT NULL,
     "FriendId" INTEGER NOT NULL,
-    PRIMARY KEY ("UserId","ReceiverId"),
+    PRIMARY KEY ("UserId", "FriendId"),
     FOREIGN KEY ("UserId") REFERENCES "UserStandard"("Id"),
     FOREIGN KEY ("FriendId") REFERENCES "UserStandard"("Id"),
 );
@@ -102,7 +102,7 @@ CREATE TABLE "Friendship" (
 CREATE TABLE "FriendRequest" (
     "SenderId" INTEGER NOT NULL,
     "ReceiverId" INTEGER NOT NULL,
-    PRIMARY KEY ("SenderId","ReceiverId"),
+    PRIMARY KEY ("SenderId", "ReceiverId"),
     FOREIGN KEY ("SenderId") REFERENCES "UserStandard"("Id"),
     FOREIGN KEY ("ReceiverId") REFERENCES "UserStandard"("Id"),
     CONSTRAINT ValidReq CHECK ("SenderId" != "ReceiverId")
