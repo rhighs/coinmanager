@@ -577,81 +577,101 @@ namespace CoinManager.GUI
             var stack = new StackLayout();
             var dropCrypto = new DropDown();
             var dropFriends = new DropDown();
+
             var friends = db.Friendship.Select(f => new GuiFriendship
-                {
-                    UserId = f.UserId,
-                    FriendId = f.FriendId
-                }).ToList();
+            {
+                UserId = f.UserId,
+                FriendId = f.FriendId
+            }).ToList();
+
             friends.ForEach(f => 
-                {   
-                    if(f.UserId == user.Id)
-                        dropFriends.Items.Add(new ListItem {Text = f.FriendId.ToString()});
-                });
+            {   
+                if(f.UserId == user.Id)
+                    dropFriends.Items.Add(new ListItem {Text = f.FriendId.ToString()});
+            });
+
             wallet.ForEach(w =>
-                    {
-                        dropCrypto.Items.Add(new ListItem { Text = w.CryptoId });
-                    });
+            {
+                dropCrypto.Items.Add(new ListItem { Text = w.CryptoId });
+            });
             
             var destinationRow = new TableRow
             (
-                TableLayout.AutoSized(new Label { Text = "Destination" }),
+                TableLayout.AutoSized(new Label { Text = "Destinatario" }),
                 TableLayout.AutoSized(dropFriends)
             );
+
             var walletRow = new TableRow
             (
-                 TableLayout.AutoSized(new Label { Text = "Crypto to send" }),
+                 TableLayout.AutoSized(new Label { Text = "Critpovaluta da inviare" }),
                  TableLayout.AutoSized(dropCrypto)
             );
+
             var textBox = new TextBox();
+
             var quantityRow = new TableRow
             (
-                TableLayout.AutoSized(new Label { Text = "Quantity to send" }),
+                TableLayout.AutoSized(new Label { Text = "Quantità" }),
                 TableLayout.AutoSized(textBox)
                 
             );
-            var transList = db.Transaction.Select(c => new GuiTransaction
-                {
-                    Id = c.Id
-                }).OrderByDescending(x => x.Id).ToList();
-            var cmdSend = new Command((sender, e) =>
-                             {
-                                if(dropCrypto.SelectedValue != null)
-                                {
-                                    var transaction = new EF.Transaction
-                                    {
-                                        Id = ++transList[0].Id,
-                                        SourceId = user.Id,
-                                        DestinationId = Convert.ToInt32(dropFriends.SelectedKey),
-                                        CryptoId = dropCrypto.SelectedKey,
-                                        StartDate = DateTime.Now,
-                                        FinishDate = DateTime.Now,
-                                        CryptoQuantity = Double.Parse(textBox.Text),
-                                        State = 2
-                                    };
-                                    db.Transaction.Add(transaction);
-                                    /*db.RunningTransaction.Add(new EF.RunningTransaction
-                                    {
-                                        TransactionId = transaction.Id,
-                                        StartDate = transaction.StartDate,
-                                        //Bisogna mettere total time anche nel dbcontext
-                                        //FinishDate = transaction.FinishDate,
-                                        //!!! bro mi da che viola la foreign key non riesco a capire cazzo voglia
-                                        MinerId = user.Id
-                                    });*/
-                                    db.SaveChanges();
-                                    Console.WriteLine(textBox.Text);
-                                    MessageBox.Show("Send!", 0);
 
-                                }
-                            });
+            var transList = db.Transaction.Select(c => new GuiTransaction
+            {
+                Id = c.Id
+            }).OrderByDescending(x => x.Id).ToList();
+
+            var cmdSend = new Command((sender, e) =>
+            {
+                if(dropCrypto.SelectedValue != null)
+                {
+                    int newId = transList.Count == 0 ? 1 : transList[0].Id + 1;
+                    var startDate = DateTime.Now;
+
+                    var transaction = new EF.Transaction
+                    {
+                        Id = newId,
+                        SourceId = user.Id,
+                        DestinationId = Convert.ToInt32(dropFriends.SelectedKey),
+                        CryptoQuantity = Double.Parse(textBox.Text),
+                        CryptoId = dropCrypto.SelectedKey,
+                        StartDate = DateTime.Now,
+                        FinishDate = null,
+                        MinerId = null,
+                        State = 2
+                    };
+                    db.SaveChanges();
+
+                    var running = new EF.RunningTransaction
+                    {
+                        TransactionId = newId,
+                        StartDate = startDate,
+                        TotalTime = new TimeSpan(0, 3, 0)
+                    };
+                    db.Transaction.Add(transaction);
+                    db.RunningTransaction.Add(running);
+                    db.SaveChanges();
+
+                    CMDbContext.TransactionsTasks.Check();
+
+                    var dialog = new Dialog
+                    {
+                        Padding = new Padding(20),
+                        Content = new Label { Text = "Transazione avviata." },
+                    };
+                    dialog.ShowModal();
+                }
+            });
+
             var sendRow = new TableRow
             (
                 TableLayout.AutoSized(new Button
-                    {
-                        Text = "Send",
-                        Command = cmdSend
-                    })
+                {
+                    Text = "Avvia",
+                    Command = cmdSend
+                })
             );
+
             table.Rows.Add(destinationRow);
             table.Rows.Add(walletRow);
             table.Rows.Add(quantityRow);

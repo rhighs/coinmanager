@@ -18,12 +18,12 @@ namespace CoinManager.GUI
         //No magic numbers
         enum DropItems
         {
-            All = 1,
+            Completed = 1,
             Running = 2
         }
 
         private CMDbContext db;
-        public string Name { get; } = "Transaction";
+        public string Name { get; } = "Transazioni";
         
         private const int BUTTON_WIDTH = 50;
         
@@ -36,28 +36,30 @@ namespace CoinManager.GUI
                 Padding = new Padding(20)
             };
             var dropDown = new DropDown{ Items = {
-                DropItems.All.ToString(), DropItems.Running.ToString()
+                DropItems.Completed.ToString(), DropItems.Running.ToString()
             }};
 
             var cmdAdd = new Command((sender, e) =>
-                             {
-                                collection.Clear();
-                                db = CMDbContext.Instance;
-                                var trans = db.Transaction.Select(t => new GuiTransaction{
-                                    Id = t.Id,
-                                    SourceId = t.SourceId,
-                                    DestinationId = t.DestinationId,
-                                    CryptoId = t.CryptoId,
-                                    StartDate = t.StartDate,
-                                    FinishDate = t.FinishDate,
-                                    CryptoQuantity = t.CryptoQuantity,
-                                    State = t.State
-                                }).ToList();
-                                trans.ForEach(t => {
-                                    if(dropDown.SelectedIndex == t.State) 
-                                        collection.Add(t);
-                                });
-                            });
+            {
+                collection.Clear();
+                db = CMDbContext.Instance;
+                var trans = db.Transaction.Select(t => new GuiTransaction
+                {
+                    Id = t.Id,
+                    SourceId = t.SourceId,
+                    DestinationId = t.DestinationId,
+                    CryptoId = t.CryptoId,
+                    StartDate = t.StartDate.Value,
+                    FinishDate = t.FinishDate.Value,
+                    CryptoQuantity = t.CryptoQuantity,
+                    State = t.State
+                }).ToList();
+                trans.ForEach(t =>
+                {
+                    if(dropDown.SelectedIndex + 1 == t.State)
+                        collection.Add(t);
+                });
+            });
 
             var buttonFilter = new Button
             {
@@ -67,7 +69,7 @@ namespace CoinManager.GUI
             };
             
             var filterRow = new TableRow(
-                    new TableCell(new Label() { Text = "Filter"}, true),
+                    new TableCell(new Label() { Text = "Filtri"}, true),
                     new TableCell(dropDown, true),
                     new TableCell(buttonFilter, true)
                     );
@@ -103,7 +105,7 @@ namespace CoinManager.GUI
     
     public class Wallet : Panel
     {
-        public string Name { get; } = "Wallet";
+        public string Name { get; } = "Portafoglio";
 
         private const int BUTTON_WIDTH = 50;
         private const int GRID_HEIGHT = 300;
@@ -144,7 +146,7 @@ namespace CoinManager.GUI
                 var title =
                 (
                     new TableRow(
-                        TableLayout.AutoSized(new Label { Text = "Saved Crypto" })
+                        TableLayout.AutoSized(new Label { Text = "Le tue criptovalute" })
                     )
                 );
                 
@@ -154,7 +156,7 @@ namespace CoinManager.GUI
 
                 dyn.AddColumn(new Button
                 {
-                        Text = "Send", 
+                        Text = "Invia", 
                         Command = new Command((sender, e) =>
                         {
                             var content = new SendDialog(guiWallets)
@@ -184,7 +186,7 @@ namespace CoinManager.GUI
                     grid.Columns.Add(c);
                 }
 
-                var gridLabel = new Label { Text = "Last 10 transactions" };
+                var gridLabel = new Label { Text = "Ultime 10 transazioni" };
                 grid.Height = GRID_HEIGHT;
                 t.Rows.Add(new TableRow { Cells = { title      }, ScaleHeight = true });
                 t.Rows.Add(new TableRow { Cells = { cryptoList }, ScaleHeight = true });
@@ -198,18 +200,15 @@ namespace CoinManager.GUI
 
         private List<GuiWallet> CreateWallet()
         {
-            var wallets = db.Wallet.ToList();
+            var wallets = db.Wallet.ToList().Where(w => w.UserId == user.Id).ToList();
             var layout = new TableLayout();
             wallets.ForEach(w => 
             {
-                if(w.UserId == user.Id)
-                {
-                    var cryptoRow = new TableRow(
-                        new TableCell(new Label() { Text = w.CryptoId}, true),
-                        new TableCell(new Label() { Text = w.Quantity.ToString()}, true)
-                    );
-                    layout.Rows.Add(cryptoRow);
-                }
+                var cryptoRow = new TableRow(
+                    new TableCell(new Label() { Text = w.CryptoId}, true),
+                    new TableCell(new Label() { Text = w.Quantity.ToString()}, true)
+                );
+                layout.Rows.Add(cryptoRow);
             });
 
             var guiWallets = wallets.Select(w => new GuiWallet
@@ -229,8 +228,8 @@ namespace CoinManager.GUI
                             SourceId = c.SourceId,
                             DestinationId = c.DestinationId,
                             CryptoId = c.CryptoId,
-                            StartDate = c.StartDate,
-                            FinishDate = c.FinishDate,
+                            StartDate = c.StartDate.Value,
+                            FinishDate = c.FinishDate.Value,
                             CryptoQuantity = c.CryptoQuantity,
                             State = c.State
                     }).OrderByDescending(x => x.StartDate).ToList();
@@ -264,7 +263,6 @@ namespace CoinManager.GUI
         public CMDbContext db;
         public string Name { get; } = "Profile";
 
-        private List<RunningTransaction> _runningTransactions;
         static private Padding PANEL_PADDING = new Padding(10);
         static private Padding CONTENTS_PADDING = new Padding(10);
         static private Size IMAGE_SIZE = new Size(200, 200);
@@ -297,6 +295,7 @@ namespace CoinManager.GUI
             
             var stack = new StackLayout();
             var image = new Bitmap(IMAGE_PATH);
+
             var requestButton = new Button
             {
                 Text = "Send friend request",
@@ -315,6 +314,7 @@ namespace CoinManager.GUI
                          }),
                 Width = BUTTON_WIDTH
             };
+
             var showReqButton = new Button
             {
                 Text = "Not Accepted Request",
@@ -333,6 +333,7 @@ namespace CoinManager.GUI
                          }),
                 Width = BUTTON_WIDTH
             };
+
             stack.Items.Add(new ImageView{Image = image, Size = IMAGE_SIZE});
             stack.Items.Add(new Label { Text = "Id: " + logged.Id });
             stack.Items.Add(new Label { Text = "Username: " + logged.Username, Size = new Size(50,50)});
@@ -377,6 +378,7 @@ namespace CoinManager.GUI
                 });
             return CreateScrollableGroup("Amici", friendsTable);
         }
+
         public string GetFriendName(int FriendId)
         {
             var list = db.UserStandard.Select(u => new GuiUser
@@ -393,18 +395,29 @@ namespace CoinManager.GUI
             };
             return "no friends";
         }
+
         public GroupBox CreateMinerSection()
         {
             var scroll = new Scrollable();
             var transactionsTable = new TableLayout();
-            /*
-            foreach (var trans in _runningTransactions)
+            var runningTrans = db.RunningTransaction.ToList();
+
+            foreach (var trans in runningTrans)
             {
+                var confirmButton = new Button
+                {
+                    Text = "Conferma",
+                    Command = new Command((sender, e) =>
+                    {
+                        CMDbContext.TransactionsTasks.EndTimer(trans.TransactionId, logged.Id);
+                    })
+                };
                 var idLabel = TableLayout.AutoSized(new Label { Text = trans.TransactionId.ToString() });
-                var confirmButton = TableLayout.AutoSized(new Button { Text = "Conferma" });
-                transactionsTable.Rows.Add(new TableRow(idLabel, confirmButton));
+                var button = TableLayout.AutoSized(confirmButton);
+                transactionsTable.Rows.Add(new TableRow(idLabel, button));
             }
-            */
+
+            scroll.Content = transactionsTable;
             return CreateScrollableGroup("Transazioni confermabili", scroll);
         }
 
