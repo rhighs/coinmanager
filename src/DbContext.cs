@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
+using CoinManager.Tasks;
+
 namespace CoinManager.EF
 {
     /*
@@ -33,16 +35,20 @@ namespace CoinManager.EF
         public static CMDbContext Instance;
         public static UserStandard LoggedUser;
 
+        public static TransactionsTasks TransactionsTasks;
+
         public CMDbContext(string host, string dbName, string username, string password) 
         {
             connectionString = $"Host={host};Database={dbName};Username={username};Password={password}";
             Instance = this;
+            TransactionsTasks = new TransactionsTasks();
 
             //set default user as the first, temporary solution
             Task.Run(async () => 
             {
                 LoggedUser = (await UserStandard.ToListAsync())[0];
             }).Wait();
+            TransactionsTasks.Start();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -53,9 +59,9 @@ namespace CoinManager.EF
             modelBuilder.Entity<Wallet>()
                 .HasKey(w => new { w.UserId , w.CryptoId });
             modelBuilder.Entity<Friendship>()
-                .HasKey(f => new {f.UserId, f.FriendId});
+                .HasKey(f => new { f.UserId, f.FriendId });
             modelBuilder.Entity<FriendRequest>()
-                .HasKey(f => new {f.SenderId, f.ReceiverId});
+                .HasKey(f => new { f.SenderId, f.ReceiverId });
         }
     }
 
@@ -107,9 +113,10 @@ namespace CoinManager.EF
         public int SourceId             { get; set; }
         public int DestinationId        { get; set; }
         public string CryptoId          { get; set; }
-        public DateTime StartDate       { get; set; }
-        public DateTime FinishDate      { get; set; }
+        public DateTime? StartDate      { get; set; }
+        public DateTime? FinishDate     { get; set; }
         public double CryptoQuantity    { get; set; }
+        public int? MinerId             { get; set; }
         public int State                { get; set; }
     }
 
@@ -118,8 +125,7 @@ namespace CoinManager.EF
         [Key]
         public int TransactionId        { get; set; }
         public DateTime StartDate       { get; set; }
-        //public DateTime FinishDate      { get; set; }
-        public int MinerId              { get; set; }
+        public TimeSpan TotalTime       { get; set; }
     }
 
     public class Buy
