@@ -278,8 +278,6 @@ namespace CoinManager.GUI
         private bool buySelected;
         private double userCryptoBalance;
         private double userUsdtBalance;
-        private double buyValue;
-        private double baseValue;
 
         private readonly Size TABLE_SPACING = new Size(20, 20);
         private readonly Padding TABLE_PADDING = new Padding(20);
@@ -293,6 +291,10 @@ namespace CoinManager.GUI
         {
             _crypto  = crypto;
             db       = CMDbContext.Instance;
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
             user     = CMDbContext.LoggedUser; 
             cryptoWallet = db.Wallet.Find(user.Id, _crypto.Id);
             usdtWallet   = db.Wallet.Find(user.Id, "tether");
@@ -336,6 +338,7 @@ namespace CoinManager.GUI
             Content = CreateTable(labels, inputs, actions);
         }
 
+
         private Tuple<TextBox, TextBox> CreateInputs()
         {
             var c1 = new TextBox { PlaceholderText = $"USDT | saldo: {userUsdtBalance}" };
@@ -367,7 +370,6 @@ namespace CoinManager.GUI
                     qty = userUsdtBalance;
                     t.Text = userUsdtBalance.ToString();
                 } 
-                baseValue = qty;
             };
 
             c2.TextChanged += (sender, e) => 
@@ -382,7 +384,6 @@ namespace CoinManager.GUI
                     qty = userCryptoBalance;
                     t.Text = userCryptoBalance.ToString();
                 }
-                buyValue = qty;
             };
 
             c2.Enabled = false;
@@ -408,24 +409,6 @@ namespace CoinManager.GUI
                 Text = "Conferma",
                 Command = new Command((sender, e) =>
                 {
-                    var buys = db.Buy.ToList();
-                    db.Buy.Add(new Buy
-                    {
-                        Id              = buys.Count == 0 ? 1 : buys[0].Id + 1,
-                        UserId          = user.Id,
-                        CryptoId        = buySelected ? _crypto.Id  : "tether",
-                        BaseCryptoId    = buySelected ? "tether"    : _crypto.Id,
-                        BuyQuantity     = buySelected ? buyValue    : baseValue,
-                        BaseQuantity    = buySelected ? baseValue   : buyValue
-                    });
-                    db.SaveChanges();
-
-                    var dialog = new Dialog
-                    {
-                        Padding = new Padding(20),
-                        Content = new Label { Text = "Operazione completata." }
-                    };
-                    dialog.ShowModal();
                 })
             };
             return button;
@@ -446,6 +429,7 @@ namespace CoinManager.GUI
             {
                 var outGoing = Double.Parse(buySelected ? cryptoQty1.Text : cryptoQty2.Text);
                 var onGoing = Double.Parse(buySelected ? cryptoQty2.Text : cryptoQty1.Text);
+
                 if(cryptoWallet == null) {
                     cryptoWallet = new EF.Wallet
                     {
@@ -456,15 +440,28 @@ namespace CoinManager.GUI
                     db.Wallet.Add(cryptoWallet);
                     db.SaveChanges();
                 }
+
                 cryptoWallet.Quantity += buySelected ? onGoing : -outGoing;
                 usdtWallet.Quantity += buySelected ? -outGoing : onGoing;
                 db.Wallet.Update(cryptoWallet);
                 db.Wallet.Update(usdtWallet);
                 db.SaveChanges();
 
+                var buys = db.Buy.ToList();
+                db.Buy.Add(new Buy
+                {
+                    Id              = buys.Count == 0 ? 1 : buys.Last().Id + 1,
+                    UserId          = user.Id,
+                    CryptoId        = buySelected ? _crypto.Id  : "tether",
+                    BaseCryptoId    = buySelected ? "tether"    : _crypto.Id,
+                    BuyQuantity     = onGoing,
+                    BaseQuantity    = outGoing
+                });
+                db.SaveChanges();
+
                 var dialog = new Dialog
                 {
-                    Padding = TABLE_PADDING,
+                    Padding = new Padding(20),
                     Content = new Label 
                     { 
                         Text = buySelected
@@ -472,6 +469,7 @@ namespace CoinManager.GUI
                             : "Vendita eseguita con successo!"
                     }
                 };
+
                 dialog.ShowModal();
             });
 
