@@ -35,14 +35,30 @@ namespace CoinManager.Util
         public async Task GenerateUsers(int noUsers)
         {
             var list = await RandomUsers(noUsers);
-            var mapped = list.Select(u => {
+            int maxMiningPower = 10;
+            var mapped = list.Select(u =>
+            {
                 return new UserStandard {
                     Id = u.id,
                     Username = u.username,
                     Password = u.password
-                    };
-                }).ToList();
-            mapped.ForEach(u => db.UserStandard.Add(u));
+               };
+            }).ToList();
+
+            var random = new Random();
+            mapped.ForEach(u =>
+            {
+                db.UserStandard.Add(u);
+                if(random.Next(1, 101) > 20)
+                {
+                    db.UserMiner.Add(new UserMiner
+                    {
+                        Id = u.Id,
+                        Miningpower = random.Next(1, maxMiningPower)
+                    });
+                }
+            });
+
             db.SaveChanges();
         }
 
