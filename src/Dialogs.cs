@@ -179,6 +179,7 @@ namespace CoinManager.GUI
                         ExpireDate = expireDate
                     });
                     db.SaveChanges();
+                    CMDbContext.LoansTasks.Check();
 
                     var dialog = new Dialog
                     {
