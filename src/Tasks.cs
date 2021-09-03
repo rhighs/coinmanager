@@ -10,12 +10,13 @@ namespace CoinManager.Tasks
     public class TransactionsTasks
     {
         private CMDbContext db;
-        private const int STOPPING_INTERVAL = 500;
         private List<Tuple<Timer, int>> timers; 
 
-        public TransactionsTasks()
+        private const int STOPPING_INTERVAL = 500;
+
+        public TransactionsTasks(CMDbContext dbInstance)
         {
-            db = CMDbContext.Instance;
+            db = dbInstance;
             timers = new List<Tuple<Timer, int>>();
         }
 
@@ -75,6 +76,65 @@ namespace CoinManager.Tasks
             var trans = db.Transaction.Find(transactionId);
             trans.MinerId = minerId;
             db.SaveChanges();
+        }
+    }
+
+    public class LoansTasks
+    {
+        private CMDbContext db;
+        private List<Tuple<Timer, int>> timers;
+
+        private const int STOPPING_INTERVAL = 500;
+
+        public LoansTasks(CMDbContext dbInstance)
+        {
+            db = dbInstance;
+            timers = new List<Tuple<Timer, int>>();
+        }
+
+        public void Start()
+        {
+            var activeLoans = db.Loan.ToList();
+        }
+
+        public void AddTimerFromList(List<Loan> activeLoans)
+        {
+            foreach(var loan in activeLoans)
+            {
+                var interval = loan.ExpireDate > DateTime.Now
+                    ? loan.ExpireDate - DateTime.Now
+                    : new TimeSpan(0, 0, 0, 0, STOPPING_INTERVAL);
+                var timer = new Timer { Interval = interval.TotalMilliseconds };
+                var tuple = new Tuple<Timer, int>(timer, loan.Id);
+
+                timer.Elapsed += (sender, e) => 
+                {
+                    db.Remove(loan);
+                    var wallet = db.Wallet.Find(loan.UserId, loan.CryptoId);
+                    wallet.Quantity -= loan.LoanQuantity;
+                    db.Wallet.Update(wallet);
+                    db.SaveChanges();
+                    timers.Remove(tuple);
+                };
+
+                timer.Enabled = true;
+                timer.AutoReset = false;
+                timer.Start();
+                timers.Add(tuple);
+            }
+        }
+
+        public void Check()
+        {
+            var loans = db.Loan.ToList();
+            var notFoundIds = timers
+                .Select(tuple => tuple.Item2)
+                .Where(loanId => loans.FirstOrDefault(l => l.Id == loanId) == null)
+                .ToList();
+            var toProcess = loans
+                .Where(l => notFoundIds.Contains(l.Id))
+                .ToList();
+            AddTimerFromList(toProcess);
         }
     }
 }
