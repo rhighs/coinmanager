@@ -94,21 +94,29 @@ namespace CoinManager.GUI
 
     public class LoanDialog : Panel
     {
-        private Crypto _crypto;
-        private readonly Size TABLE_SPACING = new Size(20, 20);
-        private readonly Padding TABLE_PADDING = new Padding(20);
         private TextBox cryptoQty;
         private TextBox advance;
-        private Label expireDate;
+        private Label expireDateLabel;
         private Label errorMessage;
         private Button confirmButton;
+        private DateTime expireDate;
+
+        private readonly Size TABLE_SPACING = new Size(20, 20);
+        private readonly Padding TABLE_PADDING = new Padding(20);
+
         private double advanceValue;
         private double loanValue;
         private double loanQty;
 
+        private CMDbContext db;
+        private Crypto _crypto;
+        private UserStandard user;
+
         public LoanDialog(Crypto crypto)
         {
             _crypto = crypto;
+            user = CMDbContext.LoggedUser;
+            db = CMDbContext.Instance;
 
             var inputs = CreateInputs(_crypto.Symbol.ToUpper(), "USDT");
             confirmButton = CreateButton("Conferma");
@@ -135,7 +143,7 @@ namespace CoinManager.GUI
             {
                 Cells = 
                 {
-                    new TableCell(expireDate, true),
+                    new TableCell(expireDateLabel, true),
                     null
                 }
             };
@@ -157,10 +165,28 @@ namespace CoinManager.GUI
             return new Button 
             {
                 Text = buttonText,
-                Command = new Command((sender, e) => 
+                Command = new Command((sender, e) =>
                 {
-                    if(loanValue > 0 && advanceValue >= 0)
-                        Console.WriteLine($"{loanValue}$ di {_crypto.Symbol.ToUpper()} con {advanceValue}$ e {expireDate.Text}");
+                    var loans = db.Loan.ToList();
+                    db.Loan.Add(new Loan
+                    {
+                        Id = loans.Count == 0 ? 1 : loans[0].Id + 1,
+                        UserId = user.Id,
+                        CryptoId = _crypto.Id,
+                        AdvanceCryptoId = "tether",
+                        LoanQuantity = loanValue,
+                        Advance = advanceValue,
+                        ExpireDate = expireDate
+                    });
+                    db.SaveChanges();
+                    CMDbContext.LoansTasks.Check();
+
+                    var dialog = new Dialog
+                    {
+                        Padding = new Padding(20),
+                        Content = new Label { Text = "Prestito creato con successo." }
+                    };
+                    dialog.ShowModal();
                 })
             };
         }
@@ -170,7 +196,7 @@ namespace CoinManager.GUI
             var cryptoQty = new TextBox { PlaceholderText = qtyPh };
             var advance = new TextBox { PlaceholderText = advPh };
             var defaultDate = DateTime.Now.AddDays(100);
-            expireDate = new Label { Text = $"Scadenza: {defaultDate}" };
+            expireDateLabel = new Label { Text = $"Scadenza: {defaultDate}" };
             errorMessage = new Label();
             int maxValue = 200000;
 
@@ -195,10 +221,10 @@ namespace CoinManager.GUI
                 loanQty = qty;
                 loanValue = _crypto.CurrentPrice * qty;
                 days = Convert.ToInt32(_crypto.CurrentPrice * qty / (maxValue / 1000));
-                var finalDate = now.AddDays(days);
-                if(days == 0) finalDate = defaultDate;
+                expireDate = now.AddDays(days);
+                if(days == 0) expireDate = defaultDate;
 
-                expireDate.Text = $"Scadenza: {finalDate}";
+                expireDateLabel.Text = $"Scadenza: {expireDate}";
                 errorMessage.Text = "";
             };
 
@@ -252,6 +278,8 @@ namespace CoinManager.GUI
         private bool buySelected;
         private double userCryptoBalance;
         private double userUsdtBalance;
+        private double buyValue;
+        private double baseValue;
 
         private readonly Size TABLE_SPACING = new Size(20, 20);
         private readonly Padding TABLE_PADDING = new Padding(20);
@@ -339,6 +367,7 @@ namespace CoinManager.GUI
                     qty = userUsdtBalance;
                     t.Text = userUsdtBalance.ToString();
                 } 
+                baseValue = qty;
             };
 
             c2.TextChanged += (sender, e) => 
@@ -353,6 +382,7 @@ namespace CoinManager.GUI
                     qty = userCryptoBalance;
                     t.Text = userCryptoBalance.ToString();
                 }
+                buyValue = qty;
             };
 
             c2.Enabled = false;
@@ -375,7 +405,28 @@ namespace CoinManager.GUI
         {
             var button = new Button
             {
-                Text = "Conferma"
+                Text = "Conferma",
+                Command = new Command((sender, e) =>
+                {
+                    var buys = db.Buy.ToList();
+                    db.Buy.Add(new Buy
+                    {
+                        Id              = buys.Count == 0 ? 1 : buys[0].Id + 1,
+                        UserId          = user.Id,
+                        CryptoId        = buySelected ? _crypto.Id  : "tether",
+                        BaseCryptoId    = buySelected ? "tether"    : _crypto.Id,
+                        BuyQuantity     = buySelected ? buyValue    : baseValue,
+                        BaseQuantity    = buySelected ? baseValue   : buyValue
+                    });
+                    db.SaveChanges();
+
+                    var dialog = new Dialog
+                    {
+                        Padding = new Padding(20),
+                        Content = new Label { Text = "Operazione completata." }
+                    };
+                    dialog.ShowModal();
+                })
             };
             return button;
         }
@@ -554,6 +605,7 @@ namespace CoinManager.GUI
         static private Padding CONTENTS_PADDING = new Padding(10);
         private CMDbContext db;
         private UserStandard user;
+
         public RequestDialog()
         {
             db = CMDbContext.Instance;
@@ -562,7 +614,6 @@ namespace CoinManager.GUI
             table.Rows.Add(new TableRow { Cells= { CreateRequestsList() }, ScaleHeight = true});           
             Content = table;
         }
-
 
         private GroupBox CreateRequestsList()
         {
@@ -611,17 +662,18 @@ namespace CoinManager.GUI
         public string GetSenderName(int SenderId)
         {
             var list = db.UserStandard.Select(u => new GuiUser
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Password = u.Password
-                }).ToList();
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Password = u.Password
+            }).ToList();
             
             foreach (var l in list)
             {
                 if(l.Id == SenderId)
                     return l.Username;
             };
+
             return "no friends";
         }
         private GroupBox CreateScrollableGroup(string Title, Container container)
