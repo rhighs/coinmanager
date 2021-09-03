@@ -491,6 +491,8 @@ namespace CoinManager.GUI
 
     public class FriendDialog : Panel
     {
+        private readonly Size TABLE_SPACING = new Size(20, 20);
+        private readonly Padding TABLE_PADDING = new Padding(30);
         private const int BUTTON_WIDTH = 50;
         private CMDbContext db;
         private UserStandard user;
@@ -498,27 +500,98 @@ namespace CoinManager.GUI
         {
             db = CMDbContext.Instance;
             user = CMDbContext.LoggedUser;
-            var table = new TableLayout();
-            var label = new Label{Text = "Friend Id to invite", Size = new Size(30,30)};
-            var textBox = new TextBox{Size = new Size(30,10)};
+            var table = new TableLayout
+            {
+                Spacing = TABLE_SPACING,
+                Padding = TABLE_PADDING
+            };
+            var label = new Label{Text = "Id dell'amico da invitare", Size = new Size(30,30)};
+            var textBox = new TextBox{Size = new Size(10,10)};
             var button = new Button
             {
-                Text = "Send invite",
+                Text = "Invia",
                 Command = new Command((sender, e) =>
                         {
-                            db.FriendRequest.Add(new EF.FriendRequest
+                            int id;
+                            bool checkText = int.TryParse(textBox.Text, out id);
+                            if(checkText)
                             {
-                                SenderId = user.Id,
-                                ReceiverId = Convert.ToInt32(textBox.Text)
-                            });
-                            db.SaveChanges();
-                            MessageBox.Show("Send!", 0);
+                                bool request = db.UserStandard.Any(u => u.Id == id);
+                                bool friend = db.Friendship.Any(f=> f.UserId == user.Id && f.FriendId == id);
+    
+                                if(request && !friend && id != user.Id)
+                                {
+                                    db.FriendRequest.Add(new EF.FriendRequest
+                                    {
+                                        SenderId = user.Id,
+                                        ReceiverId = Convert.ToInt32(textBox.Text)
+                                    });
+                                    db.SaveChanges();
+                                    var dialog = new Dialog
+                                    {
+                                        Padding = new Padding(20),
+                                        Content = new Label { Text = "Richiesta Inviata" },
+                                    };
+                                    dialog.ShowModal();
+                                }else
+                                {
+                                    var dialog = new Dialog
+                                    {
+                                        Padding = new Padding(20),
+                                        Content = new Label { Text = "Utente errato" },
+                                    };
+                                    dialog.ShowModal();
+                                }
+                            }else
+                            {
+                                var dialog = new Dialog
+                                    {
+                                        Padding = new Padding(20),
+                                        Content = new Label { Text = "Utente errato" },
+                                    };
+                                    dialog.ShowModal();
+                            }
                          }),
                 Width = BUTTON_WIDTH,
-                Height = 10
+                Height = 1
             };
-            table.Rows.Add(new TableRow { Cells= {label,textBox}, ScaleHeight = true});
-            table.Rows.Add(new TableRow { Cells= {button}});            
+            var r1 = new TableRow
+            {
+                Cells = 
+                {
+                    new TableCell
+                    {
+                        Control = label,
+                        ScaleWidth = true
+                    },
+                    new TableCell
+                    {
+                        Control = textBox,
+                        ScaleWidth = true
+                    }
+                },
+                ScaleHeight = false
+            };
+            
+            var r2 = new TableRow
+            {
+                Cells = 
+                {
+                    new TableCell
+                    {
+                        Control = new Label{Text = ""},
+                        ScaleWidth = true
+                    },
+                    new TableCell
+                    {
+                        Control = button,
+                        ScaleWidth = true
+                    }
+                },
+                ScaleHeight = false
+            };
+            table.Rows.Add(r1);
+            table.Rows.Add(r2);            
             Content = table;
         }
     }
@@ -557,7 +630,7 @@ namespace CoinManager.GUI
                         var username = new TableCell(new Label { Text = GetSenderName(f.SenderId) }, true);
                         var button = TableLayout.AutoSized(new Button 
                             { 
-                                Text = "Accept",
+                                Text = "Accetta",
                                 Command = new Command((sender, e) =>
                                 {
                                     var accepted = new EF.FriendRequest
@@ -574,15 +647,14 @@ namespace CoinManager.GUI
                                     db.Friendship.Add(acceptedFriendship);
 
                                     db.SaveChanges();
-                                    MessageBox.Show("Friend Accepted!", 0);
+                                    MessageBox.Show("Amicizia accettata!", 0);
                                 })
                             });
                         
                         friendsTable.Rows.Add(new TableRow { Cells = { id, username, button }, ScaleHeight = false });
                     }
                 });
-
-            return CreateScrollableGroup("Friends Requests", friendsTable);
+            return CreateScrollableGroup("Richieste di amicizia", friendsTable);
         }
 
         public string GetSenderName(int SenderId)
@@ -619,7 +691,39 @@ namespace CoinManager.GUI
     {
         private CMDbContext db;
         private UserStandard user;
+        public string GetUsername(int friendId)
+        {
+            var list = db.UserStandard.Select(u => new GuiUser
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Password = u.Password
+                }).ToList();
+            
+            foreach (var l in list)
+            {
+                if(l.Id == friendId)
+                    return l.Username;
+            };
+            return "no friends";
+        }
 
+         public int GetUserId(string userName)
+        {
+            var list = db.UserStandard.Select(u => new GuiUser
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Password = u.Password
+                }).ToList();
+            
+            foreach (var l in list)
+            {
+                if(l.Username == userName)
+                    return l.Id;
+            };
+            return 0;
+        }
         public SendDialog(List<GuiWallet> wallet)
         {
             db = CMDbContext.Instance;
@@ -628,7 +732,7 @@ namespace CoinManager.GUI
             var stack = new StackLayout();
             var dropCrypto = new DropDown();
             var dropFriends = new DropDown();
-
+            
             var friends = db.Friendship.Select(f => new GuiFriendship
             {
                 UserId = f.UserId,
@@ -638,7 +742,7 @@ namespace CoinManager.GUI
             friends.ForEach(f => 
             {   
                 if(f.UserId == user.Id)
-                    dropFriends.Items.Add(new ListItem {Text = f.FriendId.ToString()});
+                    dropFriends.Items.Add(new ListItem {Text = GetUsername(f.FriendId)});
             });
 
             wallet.ForEach(w =>
@@ -648,23 +752,42 @@ namespace CoinManager.GUI
             
             var destinationRow = new TableRow
             (
-                TableLayout.AutoSized(new Label { Text = "Destinatario" }),
-                TableLayout.AutoSized(dropFriends)
+                new TableCell{ Control = new Label { Text = "Destinatario" }, ScaleWidth = true},
+                new TableCell{Control = dropFriends, ScaleWidth = true}
             );
 
             var walletRow = new TableRow
             (
-                 TableLayout.AutoSized(new Label { Text = "Critpovaluta da inviare" }),
-                 TableLayout.AutoSized(dropCrypto)
+                 new TableCell{Control = new Label { Text = "Critpovaluta da inviare" }, ScaleWidth = true},
+                 new TableCell{Control = dropCrypto, ScaleWidth = true}
             );
 
             var textBox = new TextBox();
 
             var quantityRow = new TableRow
             (
-                TableLayout.AutoSized(new Label { Text = "Quantità" }),
-                TableLayout.AutoSized(textBox)
+                new TableCell{Control = new Label { Text = "Quantità" }, ScaleWidth = true},
+                new TableCell{Control = textBox, ScaleWidth = true}
                 
+            );
+
+            var remainLabel = new Label {Text = ""};
+            textBox.TextChanged += (sender,e) =>
+            {
+                remainLabel.Text = "";
+                double qty;
+                bool checkQty = Double.TryParse(textBox.Text, out qty);
+                if(dropCrypto.SelectedValue != null && checkQty)
+                {
+                    var qtyWallet = wallet.Find(w => w.CryptoId == dropCrypto.SelectedKey).Quantity;
+                    remainLabel.Text = ( qtyWallet - qty ) > 0 ? (qtyWallet - qty).ToString() : "ERROR!";
+                }
+                
+            };
+            var remainRow = new TableRow
+            (
+                new TableCell{Control = new Label { Text = "Quantità che rimarrà" }, ScaleWidth = true},
+                new TableCell {Control = remainLabel,ScaleWidth = true}
             );
 
             var transList = db.Transaction.Select(c => new GuiTransaction
@@ -674,58 +797,92 @@ namespace CoinManager.GUI
 
             var cmdSend = new Command((sender, e) =>
             {
-                if(dropCrypto.SelectedValue != null)
+                double quantity;
+                bool checkQuantity = Double.TryParse(textBox.Text, out quantity);
+                if(dropCrypto.SelectedValue != null && checkQuantity)
                 {
-                    int newId = transList.Count == 0 ? 1 : transList[0].Id + 1;
-                    var startDate = DateTime.Now;
-
-                    var transaction = new EF.Transaction
+                    var walletQty = wallet.Find(w => w.CryptoId == dropCrypto.SelectedKey).Quantity;
+                    var cryptoChange = db.Wallet.Find(user.Id, dropCrypto.SelectedKey);
+                    if(quantity < walletQty)
                     {
-                        Id = newId,
-                        SourceId = user.Id,
-                        DestinationId = Convert.ToInt32(dropFriends.SelectedKey),
-                        CryptoQuantity = Double.Parse(textBox.Text),
-                        CryptoId = dropCrypto.SelectedKey,
-                        StartDate = DateTime.Now,
-                        FinishDate = null,
-                        MinerId = null,
-                        State = 2
-                    };
-                    db.SaveChanges();
+                        int newId = transList.Count == 0 ? 1 : transList[0].Id + 1;
+                        var startDate = DateTime.Now;
 
-                    var running = new EF.RunningTransaction
+                        var transaction = new EF.Transaction
+                        {
+                            Id = newId,
+                            SourceId = user.Id,
+                            DestinationId = GetUserId(dropFriends.SelectedKey),
+                            CryptoQuantity = quantity,
+                            CryptoId = dropCrypto.SelectedKey,
+                            StartDate = DateTime.Now,
+                            FinishDate = null,
+                            MinerId = null,
+                            State = 2
+                        };
+                        db.Transaction.Add(transaction);
+                        db.SaveChanges();
+
+                        var running = new EF.RunningTransaction
+                        {
+                            TransactionId = newId,
+                            StartDate = startDate,
+                            TotalTime = new TimeSpan(0, 3, 0)
+                        };
+                        
+                        db.RunningTransaction.Add(running);
+                        db.SaveChanges();
+
+                        CMDbContext.TransactionsTasks.Check();
+                        
+                        cryptoChange.Quantity -= quantity;
+                        db.Wallet.Update(cryptoChange);
+                        db.SaveChanges();
+                        var dialog = new Dialog
+                        {
+                            Padding = new Padding(20),
+                            Content = new Label { Text = "Transazione avviata." },
+                        };
+                        dialog.ShowModal();
+                    }else
                     {
-                        TransactionId = newId,
-                        StartDate = startDate,
-                        TotalTime = new TimeSpan(0, 3, 0)
-                    };
-                    db.Transaction.Add(transaction);
-                    db.RunningTransaction.Add(running);
-                    db.SaveChanges();
-
-                    CMDbContext.TransactionsTasks.Check();
-
+                        var dialog = new Dialog
+                        {
+                            Padding = new Padding(20),
+                            Content = new Label { Text = "ERRRORE: quantità errata!" },
+                        };
+                        dialog.ShowModal();
+                    }
+                    
+                }else
+                {
                     var dialog = new Dialog
-                    {
-                        Padding = new Padding(20),
-                        Content = new Label { Text = "Transazione avviata." },
-                    };
-                    dialog.ShowModal();
+                        {
+                            Padding = new Padding(20),
+                            Content = new Label { Text = "ERRORE!" },
+                        };
+                        dialog.ShowModal();
                 }
             });
 
             var sendRow = new TableRow
             (
-                TableLayout.AutoSized(new Button
+                new TableCell{Control = new Label{Text = ""},ScaleWidth = true},
+                new TableCell
                 {
-                    Text = "Avvia",
-                    Command = cmdSend
-                })
+                    Control = new Button
+                    {
+                        Text = "Avvia",
+                        Command = cmdSend
+                    },
+                    ScaleWidth = true
+                }
             );
 
             table.Rows.Add(destinationRow);
             table.Rows.Add(walletRow);
             table.Rows.Add(quantityRow);
+            table.Rows.Add(remainRow);
             table.Rows.Add(sendRow);
 
             table.Padding = new Padding(20, 20);

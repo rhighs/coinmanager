@@ -63,7 +63,7 @@ namespace CoinManager.GUI
 
             var buttonFilter = new Button
             {
-                Text = "Apply",
+                Text = "Applica",
                 Command = cmdAdd,
                 Width = BUTTON_WIDTH
             };
@@ -110,6 +110,7 @@ namespace CoinManager.GUI
         private const int BUTTON_WIDTH = 50;
         private const int GRID_HEIGHT = 300;
         private readonly Size DIALOG_SIZE = new Size(600, 300);
+        private readonly Padding DYNAMIC_PADDING = new Padding(700, 0, 0, 0);
 
         private CMDbContext db;
         private UserStandard user;
@@ -152,9 +153,12 @@ namespace CoinManager.GUI
                 
                 guiWallets = CreateWallet();
                 var cryptoList = new TableRow { Cells = { new Scrollable { Content = layout } } };
-                var dyn = new DynamicLayout();
+                var dyn = new DynamicLayout
+                {
+                    Padding = DYNAMIC_PADDING
+                };
 
-                dyn.AddColumn(new Button
+                dyn.AddAutoSized(new Button
                 {
                         Text = "Invia", 
                         Command = new Command((sender, e) =>
@@ -186,11 +190,11 @@ namespace CoinManager.GUI
                     grid.Columns.Add(c);
                 }
 
-                var gridLabel = new Label { Text = "Ultime 10 transazioni" };
+                var gridLabel = new Label { Text = "Ultime transazioni" };
                 grid.Height = GRID_HEIGHT;
                 t.Rows.Add(new TableRow { Cells = { title      }, ScaleHeight = true });
                 t.Rows.Add(new TableRow { Cells = { cryptoList }, ScaleHeight = true });
-                t.Rows.Add(new TableRow { Cells = { dyn        }, ScaleHeight = true });
+                t.Rows.Add(new TableRow { Cells = { new TableCell(dyn,false)        }, ScaleHeight = false });
                 t.Rows.Add(new TableRow { Cells = { gridLabel  }, ScaleHeight = true });
                 t.Rows.Add(new TableRow { Cells = { grid       }, ScaleHeight = true });
                 return t;
@@ -262,7 +266,7 @@ namespace CoinManager.GUI
         public UserStandard logged;
         public CMDbContext db;
         public string Name { get; } = "Profile";
-
+        private readonly Size SPACING_SIZE = new Size(10, 10);
         static private Padding PANEL_PADDING = new Padding(10);
         static private Padding CONTENTS_PADDING = new Padding(10);
         static private Size IMAGE_SIZE = new Size(200, 200);
@@ -317,7 +321,7 @@ namespace CoinManager.GUI
 
             var showReqButton = new Button
             {
-                Text = "Not Accepted Request",
+                Text = "Richieste non accettate",
                 Command = new Command((sender, e) =>
                         {
                             var content = new RequestDialog
@@ -345,12 +349,20 @@ namespace CoinManager.GUI
         private GroupBox CreateFriendsList()
         {
             var group = new GroupBox();
-            var friendsTable = new TableLayout();
+            var friendsTable = new TableLayout
+            {
+                Spacing = SPACING_SIZE, 
+                Padding = CONTENTS_PADDING
+            };
             var friend = db.Friendship.Select(f => new GuiFriendship
                 {
                     UserId = f.UserId,
                     FriendId = f.FriendId
                 }).ToList();
+            var headId = new TableCell(new Label { Text = "Id" }, true);
+            var nameId = new TableCell(new Label { Text = "Username" }, true);
+            var buttonHead = new TableCell(new Label { Text = "" }, true);
+            friendsTable.Rows.Add(new TableRow{ Cells = { headId, nameId, buttonHead }, ScaleHeight = false });
             friend.ForEach(f => 
                 {
                     if(f.UserId == logged.Id)
@@ -399,8 +411,16 @@ namespace CoinManager.GUI
         public GroupBox CreateMinerSection()
         {
             var scroll = new Scrollable();
-            var transactionsTable = new TableLayout();
+            var transactionsTable = new TableLayout
+            {
+                Spacing = SPACING_SIZE,
+                Padding = CONTENTS_PADDING 
+            };
             var runningTrans = db.RunningTransaction.ToList();
+            var headerId = new TableCell {Control = new Label { Text = "Id Transazione", TextAlignment = TextAlignment.Left}, ScaleWidth = true};
+            var headerTime = new TableCell {Control = new Label { Text = "Tempo Totale", TextAlignment = TextAlignment.Center}, ScaleWidth = true};
+            var headerButton = new TableCell{Control = new Label { Text = "", TextAlignment = TextAlignment.Center}, ScaleWidth = true};
+            transactionsTable.Rows.Add(new TableRow{ Cells = {headerId, headerTime, headerButton}, ScaleHeight = false});
 
             foreach (var trans in runningTrans)
             {
@@ -410,11 +430,19 @@ namespace CoinManager.GUI
                     Command = new Command((sender, e) =>
                     {
                         CMDbContext.TransactionsTasks.EndTimer(trans.TransactionId, logged.Id);
+                        var dialog = new Dialog
+                            {
+                                Padding = new Padding(20),
+                                Content = new Label { Text = "Richiesta Inviata" }
+                            };
+                            dialog.ShowModal();
                     })
                 };
-                var idLabel = TableLayout.AutoSized(new Label { Text = trans.TransactionId.ToString() });
+                var idLabel = new TableCell{Control = new Label { Text = trans.TransactionId.ToString(), TextAlignment = TextAlignment.Left}, ScaleWidth = true};
+                var totalTimeLabel = new TableCell{Control = new Label { Text = trans.TotalTime.ToString(), TextAlignment = TextAlignment.Center}, ScaleWidth = true};
                 var button = TableLayout.AutoSized(confirmButton);
-                transactionsTable.Rows.Add(new TableRow(idLabel, button));
+                
+                transactionsTable.Rows.Add(new TableRow{ Cells = { idLabel, totalTimeLabel, button}, ScaleHeight = false});
             }
 
             scroll.Content = transactionsTable;
