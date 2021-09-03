@@ -36,18 +36,21 @@ namespace CoinManager.EF
         public static UserStandard LoggedUser;
 
         public static TransactionsTasks TransactionsTasks;
+        public static LoansTasks LoansTasks;
 
         public CMDbContext(string host, string dbName, string username, string password) 
         {
             connectionString = $"Host={host};Database={dbName};Username={username};Password={password}";
             Instance = this;
-            TransactionsTasks = new TransactionsTasks();
+            TransactionsTasks = new TransactionsTasks(this);
+            LoansTasks = new LoansTasks(this);
 
             //set default user as the first, temporary solution
             Task.Run(async () => 
             {
                 LoggedUser = (await UserStandard.ToListAsync())[0];
             }).Wait();
+
             TransactionsTasks.Start();
         }
 
