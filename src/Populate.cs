@@ -82,6 +82,36 @@ namespace CoinManager.Util
             db.SaveChanges();
         }
 
+        public void GenerateFriendships()
+        {
+            Func<int, List<UserStandard>> pickFriends = (int avoidId) =>
+            {
+                var pickedFriends = new List<UserStandard>();
+                var users = db.UserStandard.ToList();
+                var random = new Random();
+                return users.Where(u =>
+                {
+                    bool chance = random.Next(1, 101) > 20;
+                    return avoidId != u.Id && chance;
+                }).ToList();
+            };
+
+            var users = db.UserStandard.ToList();
+            users.ForEach(u =>
+            {
+                pickFriends(u.Id).ForEach(f =>
+                {
+                    db.Friendship.Add(new Friendship
+                    {
+                        UserId = u.Id,
+                        FriendId = f.Id
+                    });
+                });
+            });
+
+            db.SaveChanges();
+        }
+
         public void GenerateWallets(int maxPerUser=2)
         {
             var usersList = db.UserStandard.ToList();
