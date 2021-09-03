@@ -18,8 +18,8 @@ namespace CoinManager.GUI
         //No magic numbers
         enum DropItems
         {
-            Completed = 1,
-            Running = 2
+            Completate = 1,
+            In_Corso = 2
         }
 
         private CMDbContext db;
@@ -36,7 +36,7 @@ namespace CoinManager.GUI
                 Padding = new Padding(20)
             };
             var dropDown = new DropDown{ Items = {
-                DropItems.Completed.ToString(), DropItems.Running.ToString()
+                DropItems.Completate.ToString(), DropItems.In_Corso.ToString()
             }};
 
             var cmdAdd = new Command((sender, e) =>
@@ -205,7 +205,14 @@ namespace CoinManager.GUI
         private List<GuiWallet> CreateWallet()
         {
             var wallets = db.Wallet.ToList().Where(w => w.UserId == user.Id).ToList();
-            var layout = new TableLayout();
+            var layout = new TableLayout
+            {
+                Spacing = new Size(10,10)
+            };
+            var row = new TableRow(
+                new TableCell(new Label() { Text = "CRIPTOID", TextAlignment = TextAlignment.Left}),
+                new TableCell(new Label() { Text = "QUANTITA'", TextAlignment = TextAlignment.Left}));
+            layout.Rows.Add(row);
             wallets.ForEach(w => 
             {
                 var cryptoRow = new TableRow(
@@ -265,11 +272,12 @@ namespace CoinManager.GUI
         private readonly Size DIALOG_SIZE = new Size(600, 300);
         public UserStandard logged;
         public CMDbContext db;
-        public string Name { get; } = "Profile";
+        public string Name { get; } = "Profilo";
         private readonly Size SPACING_SIZE = new Size(10, 10);
+        private readonly int SPACING_SIZE_STACK = 20;
         static private Padding PANEL_PADDING = new Padding(10);
         static private Padding CONTENTS_PADDING = new Padding(10);
-        static private Size IMAGE_SIZE = new Size(200, 200);
+        static private Size IMAGE_SIZE = new Size(300, 300);
         static private string IMAGE_PATH = "./res/profile.png";
 
         protected override void OnShown(EventArgs e)
@@ -297,12 +305,15 @@ namespace CoinManager.GUI
         private StackLayout CreateInfoStack()
         {
             
-            var stack = new StackLayout();
+            var stack = new StackLayout
+            {
+                Spacing = SPACING_SIZE_STACK
+            };
             var image = new Bitmap(IMAGE_PATH);
 
             var requestButton = new Button
             {
-                Text = "Send friend request",
+                Text = "Invia richiesta di amicizia",
                 Command = new Command((sender, e) =>
                         {
                             var content = new FriendDialog
@@ -464,7 +475,7 @@ namespace CoinManager.GUI
 
     public class CoinsList : Scrollable
     {
-        public string Name { get; } = "Coins list";
+        public string Name { get; } = "Lista di cripto";
 
         private CMDbContext db;
         private TableLayout table;
@@ -482,7 +493,7 @@ namespace CoinManager.GUI
                     Rank = c.MarketCapRank
                 });
             table = new TableLayout();
-            table.Spacing = new Size(10, 10);
+            table.Spacing = new Size(10, 15);
             table.Padding = new Padding(10, 10, 10, 10);
             var coinsList = coins.ToList();
             coinsList.Sort();
@@ -493,6 +504,12 @@ namespace CoinManager.GUI
         public void UpdateList(List<GuiCrypto> coins)
         {
             table.RemoveAll();
+            var header = new TableRow(
+                new TableCell(new Label() { Text = "SIMBOLO", TextAlignment = TextAlignment.Left}, true),
+                new TableCell(new Label() { Text = "NOME", TextAlignment = TextAlignment.Left }, true),
+                new TableCell(new Label() { Text = "PREZZO", TextAlignment = TextAlignment.Left}, true)
+            );
+            table.Rows.Add(header);
             coins.ForEach(c =>
             {
                 var button = new Button

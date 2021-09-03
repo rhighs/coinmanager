@@ -75,6 +75,7 @@ namespace CoinManager.Tasks
             tuple.Item1.Interval = STOPPING_INTERVAL;
             var trans = db.Transaction.Find(transactionId);
             trans.MinerId = minerId;
+            trans.State = 1;
             db.SaveChanges();
         }
     }
