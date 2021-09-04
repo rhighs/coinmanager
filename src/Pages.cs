@@ -35,9 +35,7 @@ namespace CoinManager.GUI
             {
                 Padding = new Padding(20)
             };
-            var dropDown = new DropDown{ Items = {
-                DropItems.Completate.ToString(), DropItems.In_Corso.ToString()
-            }};
+            var dropDown = new DropDown { Items = { "Completate", "In corso" } };
 
             var cmdAdd = new Command((sender, e) =>
             {
@@ -111,6 +109,7 @@ namespace CoinManager.GUI
         private const int GRID_HEIGHT = 300;
         private readonly Size DIALOG_SIZE = new Size(600, 300);
         private readonly Padding DYNAMIC_PADDING = new Padding(700, 0, 0, 0);
+        private readonly Padding ROWS_PADDING = new Padding(5);
 
         private CMDbContext db;
         private UserStandard user;
@@ -144,15 +143,9 @@ namespace CoinManager.GUI
                     Spacing = new Size(5, 5),
                     Padding = new Padding(10, 10, 10, 10), 
                 };
-                var title =
-                (
-                    new TableRow(
-                        TableLayout.AutoSized(new Label { Text = "Le tue criptovalute" })
-                    )
-                );
                 
                 guiWallets = CreateWallet();
-                var cryptoList = new TableRow { Cells = { new Scrollable { Content = layout } } };
+                var cryptos = new TableRow { Cells = { new Scrollable { Content = layout } } };
                 var dyn = new DynamicLayout
                 {
                     Padding = DYNAMIC_PADDING
@@ -160,21 +153,21 @@ namespace CoinManager.GUI
 
                 dyn.AddAutoSized(new Button
                 {
-                        Text = "Invia", 
-                        Command = new Command((sender, e) =>
+                    Text = "Invia", 
+                    Command = new Command((sender, e) =>
+                    {
+                        var content = new SendDialog(guiWallets)
                         {
-                            var content = new SendDialog(guiWallets)
-                            {
-                                Size = DIALOG_SIZE
-                            };
-                            var dialog = new Dialog
-                            {
-                                Size = content.Size,
-                                Content = content
-                            };
-                            dialog.ShowModal();
-                         }),
-                         Width = BUTTON_WIDTH
+                            Size = DIALOG_SIZE
+                        };
+                        var dialog = new Dialog
+                        {
+                            Size = content.Size,
+                            Content = content
+                        };
+                        dialog.ShowModal();
+                    }),
+                    Width = BUTTON_WIDTH
                 });
 
                 var tenTrans = createTransList();
@@ -197,10 +190,13 @@ namespace CoinManager.GUI
                     return cell;
                 };
 
-                var cryptoListHeader = new TableLayout();
+                var cryptoListHeader = new TableLayout
+                {
+                    Padding = new Padding(5)
+                };
                 var header = new TableRow(
                     autosized(new Label { Text = "Cripto Id" }),
-                    autosized(new Label { Text = "Quantità"  })
+                    autosized(new Label { Text = "Quantità" })
                 );
                 foreach(var cell in header.Cells)
                 {
@@ -208,11 +204,26 @@ namespace CoinManager.GUI
                 }
                 cryptoListHeader.Rows.Add(header);
 
+                var cryptoList = new TableLayout
+                {
+                    Rows = { cryptoListHeader, cryptos }
+                };
+                foreach(var row in cryptoList.Rows)
+                {
+                    foreach(var cell in row.Cells)
+                    {
+                        cell.ScaleWidth = true;
+                    }
+                }
+                var cryptoGroupbox = new GroupBox
+                {
+                    Text = "Le tue criptovalute",
+                    Content = cryptoList
+                };
+
                 var gridLabel = new Label { Text = "Ultime transazioni" };
                 grid.Height = GRID_HEIGHT;
-                t.Rows.Add(new TableRow { Cells = { title      },                   ScaleHeight = true  });
-                t.Rows.Add(new TableRow { Cells = { cryptoListHeader },             ScaleHeight = true  });
-                t.Rows.Add(new TableRow { Cells = { cryptoList },                   ScaleHeight = true  });
+                t.Rows.Add(new TableRow { Cells = { cryptoGroupbox },               ScaleHeight = true  });
                 t.Rows.Add(new TableRow { Cells = { new TableCell(dyn, false) },    ScaleHeight = false });
                 t.Rows.Add(new TableRow { Cells = { gridLabel  },                   ScaleHeight = true  });
                 t.Rows.Add(new TableRow { Cells = { grid       },                   ScaleHeight = true  });
@@ -226,16 +237,24 @@ namespace CoinManager.GUI
             var wallets = db.Wallet.ToList().Where(w => w.UserId == user.Id).ToList();
             var layout = new TableLayout
             {
-                Spacing = new Size(10,10)
+                Padding = ROWS_PADDING,
             };
 
+            int counter = 0;
             wallets.ForEach(w => 
             {
+                bool dimColor = counter % 2 == 0;
+                var magicWidth = (this.Width/2) - 30;
                 var cryptoRow = new TableRow(
-                    new TableCell(new Label() { Text = w.CryptoId}, true),
-                    new TableCell(new Label() { Text = w.Quantity.ToString()}, true)
-                );
+                    CreateAutosized(new Label { Text = w.CryptoId,              Width = magicWidth }, dimColor),
+                    CreateAutosized(new Label { Text = w.Quantity.ToString(),   Width = magicWidth }, dimColor)
+                    );
+                foreach(var cell in cryptoRow.Cells)
+                {
+                    cell.ScaleWidth = true;
+                }
                 layout.Rows.Add(cryptoRow);
+                counter++;
             });
 
             var guiWallets = wallets.Select(w => new GuiWallet
@@ -250,16 +269,27 @@ namespace CoinManager.GUI
 
         private List<GuiTransaction> createTransList()
         {
-            return db.Transaction.Select(c => new GuiTransaction{
-                            Id = c.Id,
-                            SourceId = c.SourceId,
-                            DestinationId = c.DestinationId,
-                            CryptoId = c.CryptoId,
-                            StartDate = c.StartDate.Value,
-                            FinishDate = c.FinishDate.Value,
-                            CryptoQuantity = c.CryptoQuantity,
-                            State = c.State
-                    }).OrderByDescending(x => x.StartDate).ToList();
+            return db.Transaction.Select(c => new GuiTransaction
+            {
+                Id = c.Id,
+                SourceId = c.SourceId,
+                DestinationId = c.DestinationId,
+                CryptoId = c.CryptoId,
+                StartDate = c.StartDate.Value,
+                FinishDate = c.FinishDate.Value,
+                CryptoQuantity = c.CryptoQuantity,
+                State = c.State
+            }).OrderByDescending(x => x.StartDate).ToList();
+        }
+
+        private TableLayout CreateAutosized(Control control, bool dimColor)
+        {
+            var cell = TableLayout.AutoSized(control);
+            cell.Padding = ROWS_PADDING;
+            cell.BackgroundColor = dimColor
+                ? new Color(0, 0, 0, 0.1f)
+                : new Color(0, 0, 0, 0);
+            return cell;
         }
 
         private List<GridColumn> CreateColums()
@@ -279,7 +309,6 @@ namespace CoinManager.GUI
             }
             return list;
         }
-
     }
 
     public class Profile : Panel
@@ -320,7 +349,6 @@ namespace CoinManager.GUI
 
         private StackLayout CreateInfoStack()
         {
-            
             var stack = new StackLayout
             {
                 Spacing = SPACING_SIZE_STACK
@@ -497,6 +525,7 @@ namespace CoinManager.GUI
         private TableLayout table;
         private const int BUTTON_WIDTH = 50;
         private readonly Size DIALOG_SIZE = new Size(600, 300);
+        private readonly Padding ROWS_PADDING = new Padding(5);
 
         public CoinsList()
         {
@@ -518,20 +547,14 @@ namespace CoinManager.GUI
             UpdateList(coinsList);
             var scroll = new Scrollable { Content = table };
 
-            Func<Control, TableLayout> autosized = (control) => 
-            {
-                var cell = TableLayout.AutoSized(control);
-                cell.Padding = new Padding(5);
-                return cell;
-            };
 
             var headerTable = new TableLayout();
             headerTable.Padding = tablePadding;
 
             var header = new TableRow(
-                autosized(new Label { Text = "Simbolo" }),
-                autosized(new Label { Text = "Nome completo" }),
-                autosized(new Label { Text = "Prezzo ($)" })
+                CreateAutosized(new Label { Text = "Simbolo" }),
+                CreateAutosized(new Label { Text = "Nome completo" }),
+                CreateAutosized(new Label { Text = "Prezzo ($)" })
             );
 
             foreach(var cell in header.Cells)
@@ -539,7 +562,7 @@ namespace CoinManager.GUI
                 cell.ScaleWidth = true;
             }
 
-            header.Cells.Add(autosized(new Label { Text = "Più informazioni" }));
+            header.Cells.Add(CreateAutosized(new Label { Text = "Più informazioni" }));
 
             headerTable.Rows.Add(header);
             var dyn = new TableLayout
@@ -548,6 +571,16 @@ namespace CoinManager.GUI
             };
 
             Content = dyn;
+        }
+
+        private TableLayout CreateAutosized(Control control, bool dimColor = false)
+        {
+            var cell = TableLayout.AutoSized(control);
+            cell.Padding = ROWS_PADDING;
+            cell.BackgroundColor = dimColor
+                ? new Color(0, 0, 0, 0.1f)
+                : new Color(0, 0, 0, 0);
+            return cell;
         }
 
         public void UpdateList(List<GuiCrypto> coins)
@@ -586,16 +619,18 @@ namespace CoinManager.GUI
                     return cell;
                 };
                         
+                bool dimColor = counter % 2 == 0;
                 var row = new TableRow(
-                        autosized(new Label { Text = c.Symbol }),
-                        autosized(new Label() { Text = c.Name }),
-                        autosized(new Label() { Text = c.Price.ToString() })
+                        CreateAutosized(new Label { Text = c.Symbol }, dimColor),
+                        CreateAutosized(new Label { Text = c.Name }, dimColor),
+                        CreateAutosized(new Label { Text = c.Price.ToString() }, dimColor)
                         );
                 foreach(var cell in row.Cells)
                 {
                     cell.ScaleWidth = true;
                 }
-                row.Cells.Add(autosized(button));
+
+                row.Cells.Add(CreateAutosized(button, dimColor));
                 table.Rows.Add(row);
                 counter++;
             });
