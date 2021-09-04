@@ -672,7 +672,7 @@ namespace CoinManager.GUI
                     return l.Username;
             };
 
-            return "no friends";
+            return "Nessun amico";
         }
         private GroupBox CreateScrollableGroup(string Title, Container container)
         {
