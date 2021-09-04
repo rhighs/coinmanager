@@ -35,14 +35,31 @@ namespace CoinManager.Util
         public async Task GenerateUsers(int noUsers)
         {
             var list = await RandomUsers(noUsers);
-            var mapped = list.Select(u => {
+            int maxMiningPower = 10;
+            var mapped = list.Select(u =>
+            {
                 return new UserStandard {
                     Id = u.id,
                     Username = u.username,
                     Password = u.password
-                    };
-                }).ToList();
-            mapped.ForEach(u => db.UserStandard.Add(u));
+               };
+            }).ToList();
+
+            var random = new Random();
+            mapped.ForEach(u =>
+            {
+                db.UserStandard.Add(u);
+                db.SaveChanges();
+                if(random.Next(1, 101) > 20)
+                {
+                    db.UserMiner.Add(new UserMiner
+                    {
+                        Id = u.Id,
+                        MiningPower = random.Next(1, maxMiningPower)
+                    });
+                }
+            });
+
             db.SaveChanges();
         }
 
@@ -66,9 +83,40 @@ namespace CoinManager.Util
             db.SaveChanges();
         }
 
-        public void GenerateWallets(int maxPerUser)
+        public void GenerateFriendships()
+        {
+            Func<int, List<UserStandard>> pickFriends = (int avoidId) =>
+            {
+                var pickedFriends = new List<UserStandard>();
+                var users = db.UserStandard.ToList();
+                var random = new Random();
+                return users.Where(u =>
+                {
+                    bool chance = random.Next(1, 101) > 20;
+                    return avoidId != u.Id && chance;
+                }).ToList();
+            };
+
+            var users = db.UserStandard.ToList();
+            users.ForEach(u =>
+            {
+                pickFriends(u.Id).ForEach(f =>
+                {
+                    db.Friendship.Add(new Friendship
+                    {
+                        UserId = u.Id,
+                        FriendId = f.Id
+                    });
+                });
+            });
+
+            db.SaveChanges();
+        }
+
+        public void GenerateWallets(int maxPerUser=2)
         {
             var usersList = db.UserStandard.ToList();
+            var defaultUsdtQuantity = 200;
             usersList.ForEach(u => 
                     {
                         var rand = new Random();
@@ -77,14 +125,15 @@ namespace CoinManager.Util
                         var nCryptos = cryptosList.Count;
                         string prevCryptoId = "";
                         string randomCryptoId = "";
+                        var usdt = cryptosList.Find(c => c.Symbol == "usdt");
 
                         for(int i = 0; i < nWallets; i++) 
                         {
                             do
                             {
                                 randomCryptoId = cryptosList.ElementAt(rand.Next(0, nCryptos)).Id;
-                            } while(randomCryptoId == prevCryptoId);
-                            var wallet = new Wallet()
+                            } while(randomCryptoId == prevCryptoId && randomCryptoId == "tether");
+                            var wallet = new Wallet
                             {
                                 UserId = u.Id,
                                 CryptoId = randomCryptoId,
@@ -93,6 +142,12 @@ namespace CoinManager.Util
                             db.Wallet.Add(wallet);
                             prevCryptoId = randomCryptoId;
                         }
+                        db.Wallet.Add(new Wallet
+                        {
+                            UserId = u.Id,
+                            CryptoId = usdt.Id,
+                            Quantity = defaultUsdtQuantity
+                        });
                     });
             db.SaveChanges();
         }

@@ -6,6 +6,7 @@ using Eto.Forms;
 using Eto.Drawing;
 
 using CoinManager.EF;
+using CoinManager.FS;
 
 namespace CoinManager.GUI
 {
@@ -18,25 +19,32 @@ namespace CoinManager.GUI
             var tabs = new TabDrawer();
             var listTest = new TabDrawer();
             var coinsList = new CoinsList();
+            Resizable = false;
+
+            var profile = new Profile();
 
             tabs.AddPage(coinsList.Name, coinsList);
             tabs.AddPage(wallet.Name, wallet);
             tabs.AddPage(transaction.Name, transaction);
+            tabs.AddPage(profile.Name, profile);
             
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
-                        Func<bool> verifyLogin = () => {
+                        Func<UserStandard> verifyLogin = () => {
                             var dbc = CMDbContext.Instance;
                             var user = loginPage.Username.Text;
                             var password = loginPage.Password.Text;
-                            return true;
                             return dbc
                                 .UserStandard
-                                .FirstOrDefault(u => u.Username == user && u.Password == password) != null;
+                                .FirstOrDefault(u => u.Username == user && u.Password == password);
                         };
-                        if(verifyLogin())
+                        var foundUser = verifyLogin();
+                        if(foundUser != null)
                         {
+                            CMDbContext.LoggedUser = foundUser;
+                            Resizable = true;
                             Content = tabs;
+                            ClientSize = new Size(850, 650);
                         }
                         loginPage.ErroreMessage.Text = "Hai sbagliato username o password, riprova.";
                         }));
@@ -57,9 +65,7 @@ namespace CoinManager.GUI
         private StackLayout layout;
 
         static private Size inputSize = new Size(400, 40);
-        //static private string imagePath = "./res/logo.png";
-        //bro scusa ma a me va solo con il percorso assoluto
-        static private string imagePath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
+        static private string imagePath = CMImages.LogoPath;
         static private Label usernameLabel = new Label(){ Text = "Nome utente" };
         static private Label passwordLabel = new Label(){ Text = "Password" };
 
@@ -119,9 +125,6 @@ namespace CoinManager.GUI
 
     public class TabDrawer : TabControl
     {
-        public TabDrawer()
-        {
-        }
 
         public void AddPage(string pageTitle, Control item)
         {

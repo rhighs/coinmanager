@@ -45,7 +45,9 @@ CREATE TABLE "Transaction" (
     "StartDate" TIMESTAMP WITH TIME ZONE,
     "FinishDate" TIMESTAMP WITH TIME ZONE,
     "CryptoQuantity" FLOAT NOT NULL,
+    "MinerId" INTEGER,
     "State" INTEGER NOT NULL,
+    FOREIGN KEY ("MinerId") REFERENCES "UserMiner"("Id"),
     CONSTRAINT ValidState CHECK ( "State" BETWEEN 1 AND 3 )
 );
 
@@ -53,8 +55,6 @@ CREATE TABLE "RunningTransaction" (
     "TransactionId" INTEGER NOT NULL PRIMARY KEY,
     "StartDate" TIMESTAMP WITH TIME ZONE,
     "TotalTime" INTERVAL MINUTE TO SECOND,
-    "MinerId" INTEGER NOT NULL,
-    FOREIGN KEY ("MinerId") REFERENCES "UserMiner"("Id"),
     FOREIGN KEY ("TransactionId") REFERENCES "Transaction"("Id")
 );
 
@@ -92,15 +92,17 @@ CREATE TABLE "MinerSession" (
 );
 
 CREATE TABLE "Friendship" (
-    "UserId" INTEGER NOT NULL PRIMARY KEY,
-    "FriendId" INTEGER NOT NULL PRIMARY KEY,
+    "UserId" INTEGER NOT NULL,
+    "FriendId" INTEGER NOT NULL,
+    PRIMARY KEY ("UserId", "FriendId"),
     FOREIGN KEY ("UserId") REFERENCES "UserStandard"("Id"),
-    FOREIGN KEY ("FriendId") REFERENCES "UserStandard"("Id"),
+    FOREIGN KEY ("FriendId") REFERENCES "UserStandard"("Id")
 );
 
 CREATE TABLE "FriendRequest" (
-    "SenderId" INTEGER NOT NULL PRIMARY KEY,
-    "ReceiverId" INTEGER NOT NULL PRIMARY KEY,
+    "SenderId" INTEGER NOT NULL,
+    "ReceiverId" INTEGER NOT NULL,
+    PRIMARY KEY ("SenderId", "ReceiverId"),
     FOREIGN KEY ("SenderId") REFERENCES "UserStandard"("Id"),
     FOREIGN KEY ("ReceiverId") REFERENCES "UserStandard"("Id"),
     CONSTRAINT ValidReq CHECK ("SenderId" != "ReceiverId")

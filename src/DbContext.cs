@@ -1,7 +1,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Threading.Tasks;
+
+using CoinManager.Tasks;
 
 namespace CoinManager.EF
 {
@@ -23,16 +25,28 @@ namespace CoinManager.EF
         public DbSet<Wallet> Wallet { get; set; }
         public DbSet<Transaction> Transaction { get; set; }
         public DbSet<RunningTransaction> RunningTransaction { get; set; }
-        public DbSet<Buy> Buy{ get; set; }
+        public DbSet<Buy> Buy { get; set; }
         public DbSet<Loan> Loan { get; set; }
+        public DbSet<Friendship> Friendship { get; set; }
+
+        public DbSet<FriendRequest> FriendRequest { get; set; }
         private string connectionString;
 
         public static CMDbContext Instance;
+        public static UserStandard LoggedUser;
+
+        public static TransactionsTasks TransactionsTasks;
+        public static LoansTasks LoansTasks;
 
         public CMDbContext(string host, string dbName, string username, string password) 
         {
             connectionString = $"Host={host};Database={dbName};Username={username};Password={password}";
             Instance = this;
+            TransactionsTasks = new TransactionsTasks(this);
+            LoansTasks = new LoansTasks(this);
+
+            TransactionsTasks.Start();
+            LoansTasks.Start();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -42,6 +56,10 @@ namespace CoinManager.EF
         {
             modelBuilder.Entity<Wallet>()
                 .HasKey(w => new { w.UserId , w.CryptoId });
+            modelBuilder.Entity<Friendship>()
+                .HasKey(f => new { f.UserId, f.FriendId });
+            modelBuilder.Entity<FriendRequest>()
+                .HasKey(f => new { f.SenderId, f.ReceiverId });
         }
     }
 
@@ -55,7 +73,7 @@ namespace CoinManager.EF
     public class UserMiner
     {
         public int Id              { get; set; }
-        public int Miningpower     { get; set; }
+        public int MiningPower     { get; set; }
     }
 
     public class MinerSessions
@@ -93,9 +111,10 @@ namespace CoinManager.EF
         public int SourceId             { get; set; }
         public int DestinationId        { get; set; }
         public string CryptoId          { get; set; }
-        public DateTime StartDate       { get; set; }
-        public DateTime FinishDate      { get; set; }
+        public DateTime? StartDate      { get; set; }
+        public DateTime? FinishDate     { get; set; }
         public double CryptoQuantity    { get; set; }
+        public int? MinerId             { get; set; }
         public int State                { get; set; }
     }
 
@@ -104,8 +123,7 @@ namespace CoinManager.EF
         [Key]
         public int TransactionId        { get; set; }
         public DateTime StartDate       { get; set; }
-        public DateTime FinishDate      { get; set; }
-        public int MinerId              { get; set; }
+        public TimeSpan TotalTime       { get; set; }
     }
 
     public class Buy
@@ -129,20 +147,18 @@ namespace CoinManager.EF
         public DateTime ExpireDate      { get; set; }
     }
 
-    public class FriendRequest
-    {
-        [Key]
-        public int SenderId         { get; set; }
-        [Key]
-        public int ReceiverId       { get; set; }
-        public DateTime SentDate    { get; set; }
-    }
-
     public class Friendship
     {
         [Key]
-        public int UserId   { get; set; }
+        public int UserId{get; set;}
         [Key]
-        public int FriendId { get; set; }
+        public int FriendId{get; set;}
+    }
+    public class FriendRequest
+    {
+        [Key]
+        public int SenderId{get; set;}
+        [Key]
+        public int ReceiverId{get; set;}
     }
 }
