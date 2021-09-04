@@ -473,7 +473,7 @@ namespace CoinManager.GUI
         }
     }
 
-    public class CoinsList : Scrollable
+    public class CoinsList : Panel
     {
         public string Name { get; } = "Lista di cripto";
 
@@ -485,31 +485,60 @@ namespace CoinManager.GUI
         public CoinsList()
         {
             db = CMDbContext.Instance;
-            var coins = db.Crypto.Select(c => new GuiCrypto{
-                    Name = c.Name,
-                    Symbol = c.Symbol,
-                    Id = c.Id,
-                    Price = c.CurrentPrice,
-                    Rank = c.MarketCapRank
-                });
+            var coins = db.Crypto.Select(c => new GuiCrypto
+            {
+                Name = c.Name,
+                Symbol = c.Symbol,
+                Id = c.Id,
+                Price = c.CurrentPrice,
+                Rank = c.MarketCapRank
+            });
+
             table = new TableLayout();
-            table.Spacing = new Size(10, 15);
-            table.Padding = new Padding(10, 10, 10, 10);
+            var tablePadding = new Padding(0, 10, 10, 0);
+            table.Padding = tablePadding;
             var coinsList = coins.ToList();
             coinsList.Sort();
             UpdateList(coinsList);
-            Content = table;
+            var scroll = new Scrollable { Content = table };
+
+            Func<Control, TableLayout> autosized = (control) => 
+            {
+                var cell = TableLayout.AutoSized(control);
+                cell.Padding = new Padding(5);
+                return cell;
+            };
+
+            var headerTable = new TableLayout();
+            headerTable.Padding = tablePadding;
+
+            var header = new TableRow(
+                autosized(new Label { Text = "Simbolo" }),
+                autosized(new Label { Text = "Nome completo" }),
+                autosized(new Label { Text = "Prezzo ($)" })
+            );
+
+            foreach(var cell in header.Cells)
+            {
+                cell.ScaleWidth = true;
+            }
+
+            header.Cells.Add(autosized(new Label { Text = "Più informazioni" }));
+
+            headerTable.Rows.Add(header);
+            var dyn = new TableLayout
+            {
+                Rows = { new TableRow(headerTable), new TableRow(scroll) }
+            };
+
+            Content = dyn;
         }
 
         public void UpdateList(List<GuiCrypto> coins)
         {
             table.RemoveAll();
-            var header = new TableRow(
-                new TableCell(new Label() { Text = "SIMBOLO", TextAlignment = TextAlignment.Left}, true),
-                new TableCell(new Label() { Text = "NOME", TextAlignment = TextAlignment.Left }, true),
-                new TableCell(new Label() { Text = "PREZZO", TextAlignment = TextAlignment.Left}, true)
-            );
-            table.Rows.Add(header);
+
+            int counter = 0;
             coins.ForEach(c =>
             {
                 var button = new Button
@@ -531,13 +560,28 @@ namespace CoinManager.GUI
                     Width = BUTTON_WIDTH
                 };
 
+                Func<Control, TableLayout> autosized = (control) =>
+                {
+                    var cell = TableLayout.AutoSized(control);
+                    cell.Padding = new Padding(5);
+                    cell.BackgroundColor = counter%2 == 0
+                        ? new Color(0, 0, 0, 0.1f)
+                        : new Color(0, 0, 0, 0);
+                    return cell;
+                };
+                        
                 var row = new TableRow(
-                        new TableCell(new Label() { Text = c.Symbol}, true),
-                        new TableCell(new Label() { Text = c.Name }, true),
-                        new TableCell(new Label() { Text = c.Price.ToString()}, true),
-                        TableLayout.AutoSized(button) 
+                        autosized(new Label { Text = c.Symbol }),
+                        autosized(new Label() { Text = c.Name }),
+                        autosized(new Label() { Text = c.Price.ToString() })
                         );
+                foreach(var cell in row.Cells)
+                {
+                    cell.ScaleWidth = true;
+                }
+                row.Cells.Add(autosized(button));
                 table.Rows.Add(row);
+                counter++;
             });
         }
     }
