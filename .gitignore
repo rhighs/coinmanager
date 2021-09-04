@@ -2,8 +2,8 @@ bin/
 obj/
 src/market.txt
 market.txt
-usersdumps.txt
-exe/usersdumps.txt
+usersdump.txt
+exe/usersdump.txt
 coinmanager
 coinmanager.exe
 exe/coinmanager
