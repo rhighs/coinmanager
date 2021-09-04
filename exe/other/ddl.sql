@@ -6,8 +6,7 @@ CREATE DOMAIN CRYPTO_IMAGE AS VARCHAR(1000) NOT NULL;
 CREATE TABLE "UserStandard" (
     "Id" Integer NOT NULL PRIMARY KEY,
     "Username" VARCHAR(30) NOT NULL,
-    "Password" CHAR(20) NOT NULL,
-    "OnlineStatus" BOOLEAN DEFAULT FALSE
+    "Password" CHAR(20) NOT NULL
 );
 
 CREATE TABLE "UserMiner" (
