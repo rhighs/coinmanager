@@ -338,7 +338,6 @@ namespace CoinManager.GUI
             Content = CreateTable(labels, inputs, actions);
         }
 
-
         private Tuple<TextBox, TextBox> CreateInputs()
         {
             var c1 = new TextBox { PlaceholderText = $"USDT | saldo: {userUsdtBalance}" };
@@ -708,22 +707,21 @@ namespace CoinManager.GUI
             return "no friends";
         }
 
-         public int GetUserId(string userName)
+        public int GetUserId(string userName)
         {
             var list = db.UserStandard.Select(u => new GuiUser
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Password = u.Password
-                }).ToList();
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Password = u.Password
+            }).ToList();
             
             foreach (var l in list)
-            {
                 if(l.Username == userName)
                     return l.Id;
-            };
             return 0;
         }
+
         public SendDialog(List<GuiWallet> wallet)
         {
             db = CMDbContext.Instance;
@@ -784,6 +782,7 @@ namespace CoinManager.GUI
                 }
                 
             };
+
             var remainRow = new TableRow
             (
                 new TableCell{Control = new Label { Text = "Quantità che rimarrà" }, ScaleWidth = true},
@@ -799,10 +798,12 @@ namespace CoinManager.GUI
             {
                 double quantity;
                 bool checkQuantity = Double.TryParse(textBox.Text, out quantity);
+
                 if(dropCrypto.SelectedValue != null && checkQuantity)
                 {
                     var walletQty = wallet.Find(w => w.CryptoId == dropCrypto.SelectedKey).Quantity;
                     var cryptoChange = db.Wallet.Find(user.Id, dropCrypto.SelectedKey);
+
                     if(quantity < walletQty)
                     {
                         int newId = transList.Count == 0 ? 1 : transList[0].Id + 1;
@@ -820,6 +821,7 @@ namespace CoinManager.GUI
                             MinerId = null,
                             State = 2
                         };
+
                         db.Transaction.Add(transaction);
                         db.SaveChanges();
 
@@ -838,13 +840,15 @@ namespace CoinManager.GUI
                         cryptoChange.Quantity -= quantity;
                         db.Wallet.Update(cryptoChange);
                         db.SaveChanges();
+
                         var dialog = new Dialog
                         {
                             Padding = new Padding(20),
                             Content = new Label { Text = "Transazione avviata." },
                         };
                         dialog.ShowModal();
-                    }else
+                    }
+                    else
                     {
                         var dialog = new Dialog
                         {
@@ -853,8 +857,8 @@ namespace CoinManager.GUI
                         };
                         dialog.ShowModal();
                     }
-                    
-                }else
+                }
+                else
                 {
                     var dialog = new Dialog
                         {
