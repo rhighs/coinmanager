@@ -57,6 +57,9 @@ namespace CoinManager.Tasks
                     transToUpdate.State = 1;
                     transToUpdate.FinishDate = DateTime.Now;
                     db.Transaction.Update(transToUpdate);
+                    var destWallet = db.Wallet.Find(transToUpdate.DestinationId, transToUpdate.CryptoId);
+                    destWallet.Quantity += transToUpdate.CryptoQuantity;
+                    db.Wallet.Update(destWallet);
                     db.SaveChanges();
                     timers.Remove(tuple);
                 };
