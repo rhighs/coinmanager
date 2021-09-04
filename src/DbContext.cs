@@ -7,15 +7,6 @@ using CoinManager.Tasks;
 
 namespace CoinManager.EF
 {
-    /*
-     * Case sensisivity with postgres *matters*, so when you create a model representing a relation,
-     * make sure to call its member fields with the same casing given in the schema.
-     * Notice how the "Crypto" DbSet is written in pascal case, thats because the relation crypto has
-     * the same casing in the db, as you can tell the EF parser wont make any adjustment on its own,
-     * you must provide the correct casing ...but as you might also have noticed, the class name for
-     * the representing model can have any desired casing, in this case i'll just stick with the c#
-     * standards.
-     */
     public class CMDbContext : DbContext
     {
         public DbSet<Crypto> Crypto { get; set; }
@@ -65,6 +56,7 @@ namespace CoinManager.EF
 
     public class UserStandard
     {
+        [Key]
         public int Id              { get; set; }
         public string Username     { get; set; }
         public string Password     { get; set; }
@@ -78,6 +70,7 @@ namespace CoinManager.EF
 
     public class MinerSession
     {
+        [Key]
         public int Id              { get; set; }
         public int MinerId         { get; set; }
         public int TransactionId   { get; set; }
