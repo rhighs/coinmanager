@@ -43,6 +43,7 @@ namespace CoinManager.GUI
                         {
                             Resizable = true;
                             Content = tabs;
+                            ClientSize = new Size(850, 650);
                         }
                         loginPage.ErroreMessage.Text = "Hai sbagliato username o password, riprova.";
                         }));
@@ -123,10 +124,6 @@ namespace CoinManager.GUI
 
     public class TabDrawer : TabControl
     {
-        public TabDrawer()
-        {
-            Size = new Size(800, 600);
-        }
 
         public void AddPage(string pageTitle, Control item)
         {
