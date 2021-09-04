@@ -56,7 +56,6 @@ namespace CoinManager.EF
 
     public class UserStandard
     {
-        [Key]
         public int Id              { get; set; }
         public string Username     { get; set; }
         public string Password     { get; set; }
@@ -70,7 +69,6 @@ namespace CoinManager.EF
 
     public class MinerSession
     {
-        [Key]
         public int Id              { get; set; }
         public int MinerId         { get; set; }
         public int TransactionId   { get; set; }

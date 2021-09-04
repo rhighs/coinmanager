@@ -12,7 +12,6 @@ using CoinManager.EF;
 
 public class Startup
 {
-    static CMDbContext db;
     const string GUI_TITLE = "CoinManager Desktop";
     const string DUMP_PATH = "./usersdump.txt";
     const string AUTH_PATH = "./dbauth.json";
@@ -26,7 +25,7 @@ public class Startup
         }
 
         var dbAuth = ReadJsonData(AUTH_PATH);
-        db = new CMDbContext(dbAuth.host, dbAuth.dbname, dbAuth.user, dbAuth.password);
+        var db = new CMDbContext(dbAuth.host, dbAuth.dbname, dbAuth.user, dbAuth.password);
 
         bool shouldPop = db.Crypto.Count() == 0
                         || db.UserStandard.Count() == 0
@@ -38,18 +37,18 @@ public class Startup
             Console.WriteLine("Il tuo database sembra non contenere dei dati necessari per eseguire il programma...");
             Console.WriteLine("Veranno creati automaticamente, premere un tasto qualsiasi per continuare");
             Console.ReadKey();
-            PopulateDatabase();
+            PopulateDatabase(db);
         }
 
         if(!File.Exists(DUMP_PATH))
         {
-            UsersDump(DUMP_PATH);
+            UsersDump(DUMP_PATH, db);
         }
 
         new Eto.Forms.Application().Run(new CoinsForm(GUI_TITLE));
     }
 
-    public static void UsersDump(string path)
+    public static void UsersDump(string path, CMDbContext db)
     {
         var sr = new StreamWriter(path);
         db.UserStandard.ToList().ForEach(u => 
@@ -66,7 +65,7 @@ public class Startup
         return JsonSerializer.Deserialize<DbAuth>(stringData);
     }
 
-    public static void PopulateDatabase()
+    public static void PopulateDatabase(CMDbContext db)
     {
         Console.WriteLine("Inizio della popolazione del database...");
         var pop = new Populator();
