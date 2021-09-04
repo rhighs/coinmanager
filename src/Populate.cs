@@ -49,12 +49,13 @@ namespace CoinManager.Util
             mapped.ForEach(u =>
             {
                 db.UserStandard.Add(u);
+                db.SaveChanges();
                 if(random.Next(1, 101) > 20)
                 {
                     db.UserMiner.Add(new UserMiner
                     {
                         Id = u.Id,
-                        Miningpower = random.Next(1, maxMiningPower)
+                        MiningPower = random.Next(1, maxMiningPower)
                     });
                 }
             });

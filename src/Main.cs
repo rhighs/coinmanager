@@ -12,6 +12,7 @@ public class Startup
     {
         const string TITLE = "CoinManager Desktop";
         var db = new CMDbContext("localhost", "coinmanager", "rob", "rob");
+        var pop = new Populator();
         new Eto.Forms.Application().Run(new CoinsForm(TITLE));
     }
 }

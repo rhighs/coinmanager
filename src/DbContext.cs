@@ -50,8 +50,8 @@ namespace CoinManager.EF
             {
                 LoggedUser = (await UserStandard.ToListAsync())[0];
             }).Wait();
-
             TransactionsTasks.Start();
+            LoansTasks.Start();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -78,7 +78,7 @@ namespace CoinManager.EF
     public class UserMiner
     {
         public int Id              { get; set; }
-        public int Miningpower     { get; set; }
+        public int MiningPower     { get; set; }
     }
 
     public class MinerSessions

@@ -27,7 +27,7 @@ namespace CoinManager.Tasks
                 AddTimerFromList(transList);
         }
 
-        //hard fix, had to remove the check operation since it was somehow out of sync with postgres
+        //hard fix, had to remove the check operation since it was, somehow, out of sync with postgres
         //same thing happened for loans down below...
         public void Check(int newRunning)
         {
