@@ -21,7 +21,7 @@ namespace CoinManager.EF
         public DbSet<Crypto> Crypto { get; set; }
         public DbSet<UserStandard> UserStandard { get; set; }
         public DbSet<UserMiner> UserMiner { get; set; }
-        public DbSet<MinerSessions> MinerSessions { get; set; }
+        public DbSet<MinerSession> MinerSession { get; set; }
         public DbSet<Wallet> Wallet { get; set; }
         public DbSet<Transaction> Transaction { get; set; }
         public DbSet<RunningTransaction> RunningTransaction { get; set; }
@@ -76,7 +76,7 @@ namespace CoinManager.EF
         public int MiningPower     { get; set; }
     }
 
-    public class MinerSessions
+    public class MinerSession
     {
         public int Id              { get; set; }
         public int MinerId         { get; set; }

@@ -84,9 +84,9 @@ namespace CoinManager.Tasks
             if(tuple == null) return;
             tuple.Item1.Interval = STOPPING_INTERVAL;
             var trans = db.Transaction.Find(transactionId);
-            db.MinerSessions.Add(new MinerSessions
+            db.MinerSession.Add(new MinerSession
             {
-                Id = db.MinerSessions.Count() == 0 ? 1 : db.MinerSessions.Last().Id + 1,
+                Id = db.MinerSession.Count() == 0 ? 1 : db.MinerSession.Last().Id + 1,
                 MinerId = minerId,
                 TransactionId = transactionId
             });
