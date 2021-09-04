@@ -96,7 +96,7 @@ CREATE TABLE "Friendship" (
     "FriendId" INTEGER NOT NULL,
     PRIMARY KEY ("UserId", "FriendId"),
     FOREIGN KEY ("UserId") REFERENCES "UserStandard"("Id"),
-    FOREIGN KEY ("FriendId") REFERENCES "UserStandard"("Id"),
+    FOREIGN KEY ("FriendId") REFERENCES "UserStandard"("Id")
 );
 
 CREATE TABLE "FriendRequest" (
