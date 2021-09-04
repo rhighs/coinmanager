@@ -168,7 +168,7 @@ namespace CoinManager.GUI
                 Command = new Command((sender, e) =>
                 {
                     var loans = db.Loan.ToList();
-                    db.Loan.Add(new Loan
+                    var newLoan = new Loan
                     {
                         Id = loans.Count == 0 ? 1 : loans[0].Id + 1,
                         UserId = user.Id,
@@ -177,9 +177,10 @@ namespace CoinManager.GUI
                         LoanQuantity = loanValue,
                         Advance = advanceValue,
                         ExpireDate = expireDate
-                    });
+                    };
+                    db.Loan.Add(newLoan);
                     db.SaveChanges();
-                    CMDbContext.LoansTasks.Check();
+                    CMDbContext.LoansTasks.Check(newLoan.Id);
 
                     var dialog = new Dialog
                     {
@@ -690,6 +691,7 @@ namespace CoinManager.GUI
     {
         private CMDbContext db;
         private UserStandard user;
+
         public string GetUsername(int friendId)
         {
             var list = db.UserStandard.Select(u => new GuiUser
@@ -704,7 +706,7 @@ namespace CoinManager.GUI
                 if(l.Id == friendId)
                     return l.Username;
             };
-            return "no friends";
+            return "Nessun amico";
         }
 
         public int GetUserId(string userName)
@@ -835,7 +837,7 @@ namespace CoinManager.GUI
                         db.RunningTransaction.Add(running);
                         db.SaveChanges();
 
-                        CMDbContext.TransactionsTasks.Check();
+                        CMDbContext.TransactionsTasks.Check(running.TransactionId);
                         
                         cryptoChange.Quantity -= quantity;
                         db.Wallet.Update(cryptoChange);
