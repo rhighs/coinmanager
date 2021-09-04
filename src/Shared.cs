@@ -24,20 +24,23 @@ namespace CoinManager.ApiData
     }
 }
 
-//this is just for the development phase, going to remove it on release
 namespace CoinManager.FS
 {
     static public class CMImages
     {
-        static private string robPath = "/home/rob/repos/coinmanager/src/res/logo.png";
-        static private string jsonPath ="/home/json/Scrivania/coinmanager/src/res/logo.png";
         static public string LogoPath
         {
             get 
             {
-                return System.Environment.UserName == "json" 
-                    ? jsonPath
-                    : robPath;
+                return "./res/logo.png";
+            }
+        }
+
+        static public string ProfileLogoPath
+        {
+            get
+            {
+                return "./res/profile.png";
             }
         }
     }
@@ -142,14 +145,14 @@ namespace CoinManager.Models
         public class GuiTransaction
         {
             public int Id { get; set; }
-            public int SourceId { get; set; }
-            public int DestinationId { get; set; }
+            public int Emittente { get; set; }
+            public int Destinatario { get; set; }
             public string CryptoId { get; set; }
-            public int State { get; set; }
-            public DateTime StartDate{ get; set; }
-            public DateTime FinishDate{ get; set; }
-            public double CryptoQuantity{ get; set; }
-            
+            public int Stato { get; set; }
+            public DateTime Inizio { get; set; }
+            public DateTime Fine { get; set; }
+            public int Miner { get; set; }
+            public double Quantità { get; set; }
         }
 
         public class GuiWallet

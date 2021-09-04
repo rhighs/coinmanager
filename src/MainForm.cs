@@ -30,17 +30,18 @@ namespace CoinManager.GUI
             
             var loginPage = new LoginPanel();
             loginPage.CreateButton(new Command((sender, e) => {
-                        Func<bool> verifyLogin = () => {
+                        Func<UserStandard> verifyLogin = () => {
                             var dbc = CMDbContext.Instance;
                             var user = loginPage.Username.Text;
                             var password = loginPage.Password.Text;
-                            return true;
                             return dbc
                                 .UserStandard
-                                .FirstOrDefault(u => u.Username == user && u.Password == password) != null;
+                                .FirstOrDefault(u => u.Username == user && u.Password == password);
                         };
-                        if(verifyLogin())
+                        var foundUser = verifyLogin();
+                        if(foundUser != null)
                         {
+                            CMDbContext.LoggedUser = foundUser;
                             Resizable = true;
                             Content = tabs;
                             ClientSize = new Size(850, 650);

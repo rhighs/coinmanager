@@ -45,11 +45,6 @@ namespace CoinManager.EF
             TransactionsTasks = new TransactionsTasks(this);
             LoansTasks = new LoansTasks(this);
 
-            //set default user as the first, temporary solution
-            Task.Run(async () => 
-            {
-                LoggedUser = (await UserStandard.ToListAsync())[0];
-            }).Wait();
             TransactionsTasks.Start();
             LoansTasks.Start();
         }

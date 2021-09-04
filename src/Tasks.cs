@@ -27,8 +27,6 @@ namespace CoinManager.Tasks
                 AddTimerFromList(transList);
         }
 
-        //hard fix, had to remove the check operation since it was, somehow, out of sync with postgres
-        //same thing happened for loans down below...
         public void Check(int newRunning)
         {
             var toProcess = new List<RunningTransaction>();
@@ -53,8 +51,20 @@ namespace CoinManager.Tasks
                     transToUpdate.State = 1;
                     transToUpdate.FinishDate = DateTime.Now;
                     db.Transaction.Update(transToUpdate);
-                    Console.WriteLine("raised");
-                    var destWallet = db.Wallet.Find(transToUpdate.DestinationId, transToUpdate.CryptoId);
+                    var destWallet = db.Wallet.FirstOrDefault(w => transToUpdate.DestinationId == w.UserId && transToUpdate.CryptoId == w.CryptoId);
+
+                    if(destWallet == null)
+                    {
+                        destWallet = new Wallet
+                        {
+                            UserId = transToUpdate.DestinationId,
+                            CryptoId = transToUpdate.CryptoId,
+                            Quantity = 0
+                        };
+                        db.Wallet.Add(destWallet);
+                        db.SaveChanges();
+                    }
+
                     destWallet.Quantity += transToUpdate.CryptoQuantity;
                     db.Wallet.Update(destWallet);
                     db.SaveChanges();
@@ -74,6 +84,12 @@ namespace CoinManager.Tasks
             if(tuple == null) return;
             tuple.Item1.Interval = STOPPING_INTERVAL;
             var trans = db.Transaction.Find(transactionId);
+            db.MinerSessions.Add(new MinerSessions
+            {
+                Id = db.MinerSessions.Count() == 0 ? 1 : db.MinerSessions.Last().Id + 1,
+                MinerId = minerId,
+                TransactionId = transactionId
+            });
             trans.MinerId = minerId;
             trans.State = 1;
             db.SaveChanges();
