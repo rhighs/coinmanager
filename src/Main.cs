@@ -28,7 +28,12 @@ public class Startup
         var dbAuth = ReadJsonData(AUTH_PATH);
         db = new CMDbContext(dbAuth.host, dbAuth.dbname, dbAuth.user, dbAuth.password);
 
-        if(db.Crypto.Count() == 0)
+        bool shouldPop = db.Crypto.Count() == 0
+                        || db.UserStandard.Count() == 0
+                        || db.Wallet.Count() == 0
+                        || db.Friendship.Count() == 0;
+
+        if(shouldPop)
         {
             Console.WriteLine("Il tuo database sembra non contenere dei dati necessari per eseguire il programma...");
             Console.WriteLine("Veranno creati automaticamente, premere un tasto qualsiasi per continuare");

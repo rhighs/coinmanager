@@ -119,12 +119,12 @@ namespace CoinManager.Util
             var defaultUsdtQuantity = 200;
             usersList.ForEach(u => 
                     {
+                        string randomCryptoId = "";
+                        var foundIds = new List<string>();
                         var rand = new Random();
                         var nWallets = rand.Next(0, maxPerUser);
                         var cryptosList = db.Crypto.ToList();
                         var nCryptos = cryptosList.Count;
-                        string prevCryptoId = "";
-                        string randomCryptoId = "";
                         var usdt = cryptosList.Find(c => c.Symbol == "usdt");
 
                         for(int i = 0; i < nWallets; i++) 
@@ -132,15 +132,19 @@ namespace CoinManager.Util
                             do
                             {
                                 randomCryptoId = cryptosList.ElementAt(rand.Next(0, nCryptos)).Id;
-                            } while(randomCryptoId == prevCryptoId && randomCryptoId == "tether");
+                            } while(foundIds.Contains(randomCryptoId) && randomCryptoId == "tether");
+
+                            foundIds.Add(randomCryptoId);
+
                             var wallet = new Wallet
                             {
                                 UserId = u.Id,
                                 CryptoId = randomCryptoId,
                                 Quantity = rand.NextDouble() / rand.NextDouble()
                             };
+
                             db.Wallet.Add(wallet);
-                            prevCryptoId = randomCryptoId;
+                            db.SaveChanges();
                         }
                         db.Wallet.Add(new Wallet
                         {
