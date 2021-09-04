@@ -27,16 +27,12 @@ namespace CoinManager.Tasks
                 AddTimerFromList(transList);
         }
 
-        public void Check()
+        //hard fix, had to remove the check operation since it was somehow out of sync with postgres
+        //same thing happened for loans down below...
+        public void Check(int newRunning)
         {
-            var transList = db.RunningTransaction.ToList();
-            var notFoundIds = timers
-                .Select(tuple => tuple.Item2)
-                .Where(transId => transList.FirstOrDefault(r => r.TransactionId == transId) == null)
-                .ToList();
-            var toProcess = transList
-                .Where(t => notFoundIds.Contains(t.TransactionId))
-                .ToList();
+            var toProcess = new List<RunningTransaction>();
+            toProcess.Add(db.RunningTransaction.Find(newRunning));
             AddTimerFromList(toProcess);
         }
 
@@ -57,6 +53,7 @@ namespace CoinManager.Tasks
                     transToUpdate.State = 1;
                     transToUpdate.FinishDate = DateTime.Now;
                     db.Transaction.Update(transToUpdate);
+                    Console.WriteLine("raised");
                     var destWallet = db.Wallet.Find(transToUpdate.DestinationId, transToUpdate.CryptoId);
                     destWallet.Quantity += transToUpdate.CryptoQuantity;
                     db.Wallet.Update(destWallet);
@@ -128,16 +125,10 @@ namespace CoinManager.Tasks
             }
         }
 
-        public void Check()
+        public void Check(int newLoadId)
         {
-            var loans = db.Loan.ToList();
-            var notFoundIds = timers
-                .Select(tuple => tuple.Item2)
-                .Where(loanId => loans.FirstOrDefault(l => l.Id == loanId) == null)
-                .ToList();
-            var toProcess = loans
-                .Where(l => notFoundIds.Contains(l.Id))
-                .ToList();
+            var toProcess = new List<Loan>();
+            toProcess.Add(db.Loan.Find(newLoadId));
             AddTimerFromList(toProcess);
         }
     }
