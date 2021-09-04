@@ -190,13 +190,32 @@ namespace CoinManager.GUI
                     grid.Columns.Add(c);
                 }
 
+                Func<Control, TableLayout> autosized = (control) => 
+                {
+                    var cell = TableLayout.AutoSized(control);
+                    cell.Padding = new Padding(5);
+                    return cell;
+                };
+
+                var cryptoListHeader = new TableLayout();
+                var header = new TableRow(
+                    autosized(new Label { Text = "Cripto Id" }),
+                    autosized(new Label { Text = "Quantità"  })
+                );
+                foreach(var cell in header.Cells)
+                {
+                    cell.ScaleWidth = true;
+                }
+                cryptoListHeader.Rows.Add(header);
+
                 var gridLabel = new Label { Text = "Ultime transazioni" };
                 grid.Height = GRID_HEIGHT;
-                t.Rows.Add(new TableRow { Cells = { title      }, ScaleHeight = true });
-                t.Rows.Add(new TableRow { Cells = { cryptoList }, ScaleHeight = true });
-                t.Rows.Add(new TableRow { Cells = { new TableCell(dyn,false)        }, ScaleHeight = false });
-                t.Rows.Add(new TableRow { Cells = { gridLabel  }, ScaleHeight = true });
-                t.Rows.Add(new TableRow { Cells = { grid       }, ScaleHeight = true });
+                t.Rows.Add(new TableRow { Cells = { title      },                   ScaleHeight = true  });
+                t.Rows.Add(new TableRow { Cells = { cryptoListHeader },             ScaleHeight = true  });
+                t.Rows.Add(new TableRow { Cells = { cryptoList },                   ScaleHeight = true  });
+                t.Rows.Add(new TableRow { Cells = { new TableCell(dyn, false) },    ScaleHeight = false });
+                t.Rows.Add(new TableRow { Cells = { gridLabel  },                   ScaleHeight = true  });
+                t.Rows.Add(new TableRow { Cells = { grid       },                   ScaleHeight = true  });
                 return t;
             };
             Content = createLayout();
@@ -209,10 +228,7 @@ namespace CoinManager.GUI
             {
                 Spacing = new Size(10,10)
             };
-            var row = new TableRow(
-                new TableCell(new Label() { Text = "CRIPTOID", TextAlignment = TextAlignment.Left}),
-                new TableCell(new Label() { Text = "QUANTITA'", TextAlignment = TextAlignment.Left}));
-            layout.Rows.Add(row);
+
             wallets.ForEach(w => 
             {
                 var cryptoRow = new TableRow(
