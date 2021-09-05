@@ -125,6 +125,7 @@ namespace CoinManager.Tasks
                 var interval = loan.ExpireDate > DateTime.Now
                     ? loan.ExpireDate - DateTime.Now
                     : new TimeSpan(0, 0, 0, 0, STOPPING_INTERVAL);
+                interval = new TimeSpan(0,0,0,0, STOPPING_INTERVAL * 10);
                 var timer = new Timer { Interval = interval.TotalMilliseconds };
                 var tuple = new Tuple<Timer, int>(timer, loan.Id);
 
