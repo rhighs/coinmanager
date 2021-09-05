@@ -167,10 +167,9 @@ namespace CoinManager.GUI
                 Text = buttonText,
                 Command = new Command((sender, e) =>
                 {
-                    var loans = db.Loan.ToList();
                     var newLoan = new Loan
                     {
-                        Id = loans.Count == 0 ? 1 : loans[0].Id + 1,
+                        Id = db.Loan.ToList().Count == 0 ? 1 : db.Loan.ToList().Last().Id + 1,
                         UserId = user.Id,
                         CryptoId = _crypto.Id,
                         AdvanceCryptoId = "tether",
